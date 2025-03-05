@@ -33,6 +33,8 @@ Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ioreq.o: \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_flash.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_flash_ex.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_flash_ramfunc.h \
+ ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_i2c.h \
+ ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_i2c_ex.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_opamp.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_opamp_ex.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_pcd.h \
@@ -40,8 +42,12 @@ Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ioreq.o: \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_pcd_ex.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_pwr.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_pwr_ex.h \
+ ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_spi.h \
+ ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_spi_ex.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim_ex.h \
+ ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h \
+ ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h \
  ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_core.h \
  ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ioreq.h \
  ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ctlreq.h
@@ -78,6 +84,8 @@ Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ioreq.o: \
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_flash.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_flash_ex.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_flash_ramfunc.h:
+../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_i2c.h:
+../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_i2c_ex.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_opamp.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_opamp_ex.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_pcd.h:
@@ -85,8 +93,12 @@ Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ioreq.o: \
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_pcd_ex.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_pwr.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_pwr_ex.h:
+../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_spi.h:
+../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_spi_ex.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim_ex.h:
+../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h:
+../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h:
 ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_core.h:
 ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ioreq.h:
 ../Middlewares/ST/STM32_USB_Device_Library/Core/Inc/usbd_ctlreq.h:

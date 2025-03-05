@@ -59,6 +59,30 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define AC_DC_CH2_Pin GPIO_PIN_13
+#define AC_DC_CH2_GPIO_Port GPIOC
+#define CD_CH2_A_Pin GPIO_PIN_14
+#define CD_CH2_A_GPIO_Port GPIOC
+#define CD_CH2_B_Pin GPIO_PIN_15
+#define CD_CH2_B_GPIO_Port GPIOC
+#define CD_CH2_C_Pin GPIO_PIN_1
+#define CD_CH2_C_GPIO_Port GPIOA
+#define CD_CH1_A_Pin GPIO_PIN_5
+#define CD_CH1_A_GPIO_Port GPIOC
+#define CD_CH1_B_Pin GPIO_PIN_15
+#define CD_CH1_B_GPIO_Port GPIOB
+#define CD_CH1_C_Pin GPIO_PIN_8
+#define CD_CH1_C_GPIO_Port GPIOA
+#define ST7789_DC_Pin GPIO_PIN_11
+#define ST7789_DC_GPIO_Port GPIOC
+#define FT6336_RST_Pin GPIO_PIN_2
+#define FT6336_RST_GPIO_Port GPIOD
+#define TLC5952_SCLK_Pin GPIO_PIN_3
+#define TLC5952_SCLK_GPIO_Port GPIOB
+#define TLC5952_LAT_Pin GPIO_PIN_4
+#define TLC5952_LAT_GPIO_Port GPIOB
+#define TLC5952_SIN_Pin GPIO_PIN_5
+#define TLC5952_SIN_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

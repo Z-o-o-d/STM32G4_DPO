@@ -1,0 +1,4 @@
+../Core/Src/TLC5952.c:8:6:TLC5952_Init	1
+../Core/Src/TLC5952.c:28:6:TLC5952_WriteBit	2
+../Core/Src/TLC5952.c:42:6:TLC5952_WriteLED	2
+../Core/Src/TLC5952.c:59:6:TLC5952_WriteControl	5
