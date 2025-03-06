@@ -125,7 +125,31 @@ static void MX_OPAMP5_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+
+#ifdef __GNUC__                  //串口重定向
+#define PUTCHAR_PROTOTYPE
+int __io_putchar(int ch)
+#else
+#define PUTCHAR_PROTOTYPE
+int fputc(int ch, FILE *f)
+#endif PUTCHAR_PROTOTYPE
+{
+	HAL_UART_Transmit(&hlpuart1 , (uint8_t *)&ch, 1, 0xFFFF);
+    return ch;
+};
+
+
+
+
+
+int fputc(int ch, FILE *f)
+{
+  HAL_UART_Transmit(&hlpuart1, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
+  return ch;
+}
+
 unsigned char BUFFER_CDC[500]={"abcd\r\n"};
+unsigned char BUFFER_Display[500]={"abcd\r\n"};
 
 uint16_t result = 0 ;
 
@@ -257,7 +281,9 @@ int main(void)
 //	HAL_DAC_SetValue(&hdac2, DAC_CHANNEL_1, DAC_ALIGN_12B_R, FEAnalog.OFFSET2);
 //	HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
 //	HAL_DAC_Start(&hdac2, DAC_CHANNEL_1);
-	  ST7789_DrawImage(80, 40, 160, 160, (uint16_t *)doubao);
+	  ST7789_DrawImage(10, 10, 160, 160, (uint16_t *)doubao);
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -266,10 +292,26 @@ int main(void)
   {
 //	  ST7789_Test();
 //	  ST7789_WriteString(10, 10, " !\"#\%\$", Han_Array, WHITE, BLACK);
-
 	TLC5952_WriteLED();  // 发送数据
 	TLC5952_WriteControl();
 
+	printf("123\r\n");
+
+
+
+	sprintf(BUFFER_Display,"ENC1:%5d",htim4.Instance->CNT);
+	ST7789_WriteString(200, 10, BUFFER_Display, Font_11x18, WHITE, BLACK);
+	sprintf(BUFFER_Display,"ENC2:%5d",htim3.Instance->CNT);
+	ST7789_WriteString(200, 40, BUFFER_Display, Font_11x18, WHITE, BLACK);
+	sprintf(BUFFER_Display,"ENC3:%5d",htim20.Instance->CNT);
+	ST7789_WriteString(200, 70, BUFFER_Display, Font_11x18, WHITE, BLACK);
+	sprintf(BUFFER_Display,"ENC4:%5d",htim1.Instance->CNT);
+	ST7789_WriteString(200, 100, BUFFER_Display, Font_11x18, WHITE, BLACK);
+
+
+	ST7789_DrawTriangle(20, 210, 40, 200, 40, 220, WHITE);
+	ST7789_DrawCircle(90, 210, 10, WHITE);
+	ST7789_DrawRectangle(140, 200, 160, 220, WHITE);
 
 
 	WS2812_Set_All(color);
@@ -1020,7 +1062,7 @@ static void MX_TIM3_Init(void)
   htim3.Init.Period = 65535;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI2;
   sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
@@ -1069,7 +1111,7 @@ static void MX_TIM4_Init(void)
   htim4.Init.Period = 65535;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI2;
   sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
