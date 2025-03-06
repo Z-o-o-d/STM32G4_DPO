@@ -67,6 +67,8 @@ void Error_Handler(void);
 #define CD_CH2_B_GPIO_Port GPIOC
 #define CD_CH2_C_Pin GPIO_PIN_1
 #define CD_CH2_C_GPIO_Port GPIOA
+#define AC_DC_CH1_Pin GPIO_PIN_5
+#define AC_DC_CH1_GPIO_Port GPIOA
 #define CD_CH1_A_Pin GPIO_PIN_5
 #define CD_CH1_A_GPIO_Port GPIOC
 #define CD_CH1_B_Pin GPIO_PIN_15

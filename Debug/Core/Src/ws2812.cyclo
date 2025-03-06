@@ -1,7 +1,3 @@
-../Core/Src/ws2812.c:26:6:WS2812_Rainbow	2
-../Core/Src/ws2812.c:48:6:WS2812_RunningHorse	3
-../Core/Src/ws2812.c:80:6:WS2812_Write_Data	3
-../Core/Src/ws2812.c:91:6:WS2812_Set_All	2
-../Core/Src/ws2812.c:103:6:WS2812_Update	1
-../Core/Src/ws2812.c:115:17:WS2812_rgb2color	1
-../Core/Src/ws2812.c:121:6:HAL_TIM_PWM_PulseFinishedCallback	1
+../Core/Src/ws2812.c:28:6:WS2812_Write_Data	3
+../Core/Src/ws2812.c:39:6:WS2812_Set_All	2
+../Core/Src/ws2812.c:51:6:WS2812_Update	1

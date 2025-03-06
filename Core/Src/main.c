@@ -129,7 +129,40 @@ unsigned char BUFFER_CDC[500]={"abcd\r\n"};
 
 uint16_t result = 0 ;
 
-uint32_t color = 0x000001;
+uint32_t color = 0x000f00;
+
+
+
+typedef struct {
+	GPIO_PinState AC_DC_CH1 : 1;
+	GPIO_PinState AC_DC_CH2 : 1;
+	GPIO_PinState CD_CH1 : 3;
+	GPIO_PinState CD_CH2 : 3;
+	uint16_t OFFSET1 :12;
+	uint16_t OFFSET2 :12;
+} FEAnalogStates;
+
+FEAnalogStates FEAnalog = {0};  // 全局变量，存储引脚状态
+
+void Analog_FE_Update(void) {
+	HAL_GPIO_WritePin(AC_DC_CH1_GPIO_Port, AC_DC_CH1_Pin, (GPIO_PinState)FEAnalog.AC_DC_CH1);
+
+	HAL_GPIO_WritePin(CD_CH1_A_GPIO_Port, CD_CH1_A_Pin, (GPIO_PinState)((FEAnalog.CD_CH1 >> 0) & 0x01));
+	HAL_GPIO_WritePin(CD_CH1_B_GPIO_Port, CD_CH1_B_Pin, (GPIO_PinState)((FEAnalog.CD_CH1 >> 1) & 0x01));
+	HAL_GPIO_WritePin(CD_CH1_C_GPIO_Port, CD_CH1_C_Pin, (GPIO_PinState)((FEAnalog.CD_CH1 >> 2) & 0x01));
+
+	HAL_GPIO_WritePin(AC_DC_CH2_GPIO_Port, AC_DC_CH2_Pin, (GPIO_PinState)FEAnalog.AC_DC_CH2);
+
+	HAL_GPIO_WritePin(CD_CH2_A_GPIO_Port, CD_CH2_A_Pin, (GPIO_PinState)((FEAnalog.CD_CH2 >> 0) & 0x01));
+	HAL_GPIO_WritePin(CD_CH2_B_GPIO_Port, CD_CH2_B_Pin, (GPIO_PinState)((FEAnalog.CD_CH2 >> 1) & 0x01));
+	HAL_GPIO_WritePin(CD_CH2_C_GPIO_Port, CD_CH2_C_Pin, (GPIO_PinState)((FEAnalog.CD_CH2 >> 2) & 0x01));
+
+	HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, FEAnalog.OFFSET1);
+	HAL_DAC_SetValue(&hdac2, DAC_CHANNEL_1, DAC_ALIGN_12B_R, FEAnalog.OFFSET2);
+	HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
+	HAL_DAC_Start(&hdac2, DAC_CHANNEL_1);
+
+}
 /* USER CODE END 0 */
 
 /**
@@ -186,22 +219,44 @@ int main(void)
   MX_OPAMP5_Init();
   /* USER CODE BEGIN 2 */
 
+
+
+
+  HAL_OPAMP_Start(&hopamp1);
+  HAL_OPAMP_Start(&hopamp2);
+  HAL_OPAMP_Start(&hopamp3);
+  HAL_OPAMP_Start(&hopamp4);
+  HAL_OPAMP_Start(&hopamp5);
+  HAL_OPAMP_Start(&hopamp6);
+
+
   HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim4, TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim20, TIM_CHANNEL_ALL);
 
-//  HAL_TIM_Base_Start(&htim8);
-//  HAL_TIM_Base_Start(&htim15);
-//  HAL_TIM_PWM_Start(&htim15, TIM_CHANNEL_1);
-//	WS2812_RunningHorse(95,10);
 
-	  HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
-
-	  HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_3);
+  HAL_TIM_PWM_Start(&htim15, TIM_CHANNEL_1);
+  HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
+  FT6336_Init();
+  ST7789_Init();
+//	  HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_3);
 
 
-	  ST7789_Init();
+//  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 2048);
+//HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
+//HAL_DAC_SetValue(&hdac2, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 3000);
+//HAL_DAC_Start(&hdac2, DAC_CHANNEL_1);
+//  HAL_DAC_Start(&hdac4, DAC_CHANNEL_1);
+//
+//  HAL_DAC_SetValue(&hdac4, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 2048);
+//HAL_DAC_Start(&hdac4, DAC_CHANNEL_1);
+
+
+//	HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, FEAnalog.OFFSET1);
+//	HAL_DAC_SetValue(&hdac2, DAC_CHANNEL_1, DAC_ALIGN_12B_R, FEAnalog.OFFSET2);
+//	HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
+//	HAL_DAC_Start(&hdac2, DAC_CHANNEL_1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -209,9 +264,17 @@ int main(void)
   while (1)
   {
 //	  ST7789_Test();
-	    TLC5952_WriteLED();  // 发送数据
-	    TLC5952_WriteControl();
+	TLC5952_WriteLED();  // 发送数据
+	TLC5952_WriteControl();
 
+
+
+	WS2812_Set_All(color);
+	WS2812_Update();
+
+
+
+//	  Analog_FE_Update();
 
 
 	    HAL_Delay(100);
@@ -434,7 +497,7 @@ static void MX_DAC1_Init(void)
   sConfig.DAC_DMADoubleDataMode = DISABLE;
   sConfig.DAC_SignedFormat = DISABLE;
   sConfig.DAC_SampleAndHold = DAC_SAMPLEANDHOLD_DISABLE;
-  sConfig.DAC_Trigger = DAC_TRIGGER_NONE;
+  sConfig.DAC_Trigger = DAC_TRIGGER_SOFTWARE;
   sConfig.DAC_Trigger2 = DAC_TRIGGER_NONE;
   sConfig.DAC_OutputBuffer = DAC_OUTPUTBUFFER_ENABLE;
   sConfig.DAC_ConnectOnChipPeripheral = DAC_CHIPCONNECT_BOTH;
@@ -446,6 +509,7 @@ static void MX_DAC1_Init(void)
 
   /** DAC channel OUT2 config
   */
+  sConfig.DAC_Trigger = DAC_TRIGGER_NONE;
   sConfig.DAC_OutputBuffer = DAC_OUTPUTBUFFER_DISABLE;
   sConfig.DAC_ConnectOnChipPeripheral = DAC_CHIPCONNECT_INTERNAL;
   if (HAL_DAC_ConfigChannel(&hdac1, &sConfig, DAC_CHANNEL_2) != HAL_OK)
@@ -490,7 +554,7 @@ static void MX_DAC2_Init(void)
   sConfig.DAC_DMADoubleDataMode = DISABLE;
   sConfig.DAC_SignedFormat = DISABLE;
   sConfig.DAC_SampleAndHold = DAC_SAMPLEANDHOLD_DISABLE;
-  sConfig.DAC_Trigger = DAC_TRIGGER_NONE;
+  sConfig.DAC_Trigger = DAC_TRIGGER_SOFTWARE;
   sConfig.DAC_Trigger2 = DAC_TRIGGER_NONE;
   sConfig.DAC_OutputBuffer = DAC_OUTPUTBUFFER_ENABLE;
   sConfig.DAC_ConnectOnChipPeripheral = DAC_CHIPCONNECT_BOTH;
@@ -537,7 +601,7 @@ static void MX_DAC4_Init(void)
   sConfig.DAC_DMADoubleDataMode = DISABLE;
   sConfig.DAC_SignedFormat = DISABLE;
   sConfig.DAC_SampleAndHold = DAC_SAMPLEANDHOLD_DISABLE;
-  sConfig.DAC_Trigger = DAC_TRIGGER_NONE;
+  sConfig.DAC_Trigger = DAC_TRIGGER_SOFTWARE;
   sConfig.DAC_Trigger2 = DAC_TRIGGER_NONE;
   sConfig.DAC_OutputBuffer = DAC_OUTPUTBUFFER_DISABLE;
   sConfig.DAC_ConnectOnChipPeripheral = DAC_CHIPCONNECT_INTERNAL;
@@ -761,7 +825,7 @@ static void MX_OPAMP4_Init(void)
 
   /* USER CODE END OPAMP4_Init 1 */
   hopamp4.Instance = OPAMP4;
-  hopamp4.Init.PowerMode = OPAMP_POWERMODE_NORMALSPEED;
+  hopamp4.Init.PowerMode = OPAMP_POWERMODE_HIGHSPEED;
   hopamp4.Init.Mode = OPAMP_FOLLOWER_MODE;
   hopamp4.Init.NonInvertingInput = OPAMP_NONINVERTINGINPUT_DAC;
   hopamp4.Init.InternalOutput = DISABLE;
@@ -826,10 +890,12 @@ static void MX_OPAMP6_Init(void)
   /* USER CODE END OPAMP6_Init 1 */
   hopamp6.Instance = OPAMP6;
   hopamp6.Init.PowerMode = OPAMP_POWERMODE_NORMALSPEED;
-  hopamp6.Init.Mode = OPAMP_FOLLOWER_MODE;
+  hopamp6.Init.Mode = OPAMP_PGA_MODE;
   hopamp6.Init.NonInvertingInput = OPAMP_NONINVERTINGINPUT_IO2;
   hopamp6.Init.InternalOutput = ENABLE;
   hopamp6.Init.TimerControlledMuxmode = OPAMP_TIMERCONTROLLEDMUXMODE_DISABLE;
+  hopamp6.Init.PgaConnect = OPAMP_PGA_CONNECT_INVERTINGINPUT_NO;
+  hopamp6.Init.PgaGain = OPAMP_PGA_GAIN_2_OR_MINUS_1;
   hopamp6.Init.UserTrimming = OPAMP_TRIMMING_FACTORY;
   if (HAL_OPAMP_Init(&hopamp6) != HAL_OK)
   {
@@ -1292,7 +1358,7 @@ static void MX_GPIO_Init(void)
                           |ST7789_DC_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, CD_CH2_C_Pin|GPIO_PIN_5|CD_CH1_C_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, CD_CH2_C_Pin|AC_DC_CH1_Pin|CD_CH1_C_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, CD_CH1_B_Pin|TLC5952_SCLK_Pin|TLC5952_LAT_Pin|TLC5952_SIN_Pin, GPIO_PIN_RESET);
@@ -1317,8 +1383,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF14_TIM2;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : CD_CH2_C_Pin PA5 CD_CH1_C_Pin */
-  GPIO_InitStruct.Pin = CD_CH2_C_Pin|GPIO_PIN_5|CD_CH1_C_Pin;
+  /*Configure GPIO pins : CD_CH2_C_Pin AC_DC_CH1_Pin CD_CH1_C_Pin */
+  GPIO_InitStruct.Pin = CD_CH2_C_Pin|AC_DC_CH1_Pin|CD_CH1_C_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
