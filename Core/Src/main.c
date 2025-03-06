@@ -257,6 +257,7 @@ int main(void)
 //	HAL_DAC_SetValue(&hdac2, DAC_CHANNEL_1, DAC_ALIGN_12B_R, FEAnalog.OFFSET2);
 //	HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
 //	HAL_DAC_Start(&hdac2, DAC_CHANNEL_1);
+	  ST7789_DrawImage(80, 40, 160, 160, (uint16_t *)doubao);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -264,6 +265,8 @@ int main(void)
   while (1)
   {
 //	  ST7789_Test();
+//	  ST7789_WriteString(10, 10, " !\"#\%\$", Han_Array, WHITE, BLACK);
+
 	TLC5952_WriteLED();  // 发送数据
 	TLC5952_WriteControl();
 
@@ -271,12 +274,7 @@ int main(void)
 
 	WS2812_Set_All(color);
 	WS2812_Update();
-
-
-
-//	  Analog_FE_Update();
-
-
+	  Analog_FE_Update();
 	    HAL_Delay(100);
 //	  HAL_ADC_Start(&hadc5);
 //	  result = HAL_ADC_GetValue(&hadc5);

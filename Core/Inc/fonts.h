@@ -13,6 +13,7 @@ typedef struct {
 extern FontDef Font_7x10;
 extern FontDef Font_11x18;
 extern FontDef Font_16x26;
+extern FontDef Han_Array;
 
 //16-bit(RGB565) Image lib.
 /*******************************************
@@ -24,7 +25,8 @@ extern FontDef Font_16x26;
  *******************************************/
 
 /* 128x128 pixel RGB565 image */
-extern const uint16_t saber[][128];
+//extern const uint16_t saber[][128];
+extern const uint16_t doubao[][160];
 
 /* 240x240 pixel RGB565 image 
 extern const uint16_t knky[][240];
