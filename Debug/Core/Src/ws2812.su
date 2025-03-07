@@ -1,3 +1,5 @@
-../Core/Src/ws2812.c:28:6:WS2812_Write_Data	24	static
-../Core/Src/ws2812.c:39:6:WS2812_Set_All	24	static
-../Core/Src/ws2812.c:51:6:WS2812_Update	8	static
+../Core/Src/ws2812.c:30:6:WS2812_Write_Data	24	static
+../Core/Src/ws2812.c:41:6:WS2812_Set_All	24	static
+../Core/Src/ws2812.c:53:6:WS2812_Update	8	static
+../Core/Src/ws2812.c:59:10:RGBColorToUint32	16	static
+../Core/Src/ws2812.c:70:6:WS2812_Write_Colors	32	static

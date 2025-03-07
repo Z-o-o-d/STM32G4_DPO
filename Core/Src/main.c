@@ -57,7 +57,11 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+ADC_HandleTypeDef hadc2;
+ADC_HandleTypeDef hadc3;
 ADC_HandleTypeDef hadc5;
+DMA_HandleTypeDef hdma_adc2;
+DMA_HandleTypeDef hdma_adc5;
 
 COMP_HandleTypeDef hcomp2;
 COMP_HandleTypeDef hcomp5;
@@ -83,6 +87,8 @@ DMA_HandleTypeDef hdma_spi3_tx;
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
+TIM_HandleTypeDef htim6;
+TIM_HandleTypeDef htim7;
 TIM_HandleTypeDef htim8;
 TIM_HandleTypeDef htim15;
 TIM_HandleTypeDef htim20;
@@ -118,6 +124,10 @@ static void MX_DAC4_Init(void);
 static void MX_LPUART1_UART_Init(void);
 static void MX_OPAMP4_Init(void);
 static void MX_OPAMP5_Init(void);
+static void MX_TIM7_Init(void);
+static void MX_ADC2_Init(void);
+static void MX_ADC3_Init(void);
+static void MX_TIM6_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -126,13 +136,8 @@ static void MX_OPAMP5_Init(void);
 /* USER CODE BEGIN 0 */
 
 
-#ifdef __GNUC__                  //串口重定向
-#define PUTCHAR_PROTOTYPE
+
 int __io_putchar(int ch)
-#else
-#define PUTCHAR_PROTOTYPE
-int fputc(int ch, FILE *f)
-#endif PUTCHAR_PROTOTYPE
 {
 	HAL_UART_Transmit(&hlpuart1 , (uint8_t *)&ch, 1, 0xFFFF);
     return ch;
@@ -142,16 +147,18 @@ int fputc(int ch, FILE *f)
 
 
 
-int fputc(int ch, FILE *f)
-{
-  HAL_UART_Transmit(&hlpuart1, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
-  return ch;
-}
+//int fputc(int ch, FILE *f)
+//{
+//  HAL_UART_Transmit(&hlpuart1, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
+//  return ch;
+//}
+
+#define DPO_DEEP 1024
 
 unsigned char BUFFER_CDC[500]={"abcd\r\n"};
-unsigned char BUFFER_Display[500]={"abcd\r\n"};
 
-uint16_t result = 0 ;
+uint32_t BUFFER_SYS_ADC[5]={0};
+uint32_t BUFFER_DPO_CH1[DPO_DEEP]={0};
 
 uint32_t color = 0x000f00;
 
@@ -166,7 +173,15 @@ typedef struct {
 	uint16_t OFFSET2 :12;
 } FEAnalogStates;
 
-FEAnalogStates FEAnalog = {0};  // 全局变量，存储引脚状态
+
+FEAnalogStates FEAnalog = {
+    .AC_DC_CH1 = GPIO_PIN_RESET,
+    .AC_DC_CH2 = GPIO_PIN_RESET,
+    .CD_CH1 = 0,
+    .CD_CH2 = 0,
+    .OFFSET1 = 2200,
+    .OFFSET2 = 2200
+};
 
 void Analog_FE_Update(void) {
 	HAL_GPIO_WritePin(AC_DC_CH1_GPIO_Port, AC_DC_CH1_Pin, (GPIO_PinState)FEAnalog.AC_DC_CH1);
@@ -187,6 +202,22 @@ void Analog_FE_Update(void) {
 	HAL_DAC_Start(&hdac2, DAC_CHANNEL_1);
 
 }
+
+
+// 彩虹颜色配置
+RGBColor rainbow_colors[10] = {
+    {255,   0,   0},
+    {255, 115,   0},
+    {255, 201,   0},
+    {229, 242,   0},
+    { 51, 153,   0},
+    {  0,  64, 127},
+    { 14,   0, 230},
+    { 67,   0, 142},
+    {172,  77, 194},
+    {243,  91, 166}
+};
+
 /* USER CODE END 0 */
 
 /**
@@ -241,17 +272,26 @@ int main(void)
   MX_LPUART1_UART_Init();
   MX_OPAMP4_Init();
   MX_OPAMP5_Init();
+  MX_TIM7_Init();
+  MX_ADC2_Init();
+  MX_ADC3_Init();
+  MX_TIM6_Init();
   /* USER CODE BEGIN 2 */
 
 
+//
+//
+//  HAL_OPAMP_Start(&hopamp1);
+//  HAL_OPAMP_Start(&hopamp2);
+//  HAL_OPAMP_Start(&hopamp3);
+//  HAL_OPAMP_Start(&hopamp4);
+//  HAL_OPAMP_Start(&hopamp5);
+//  HAL_OPAMP_Start(&hopamp6);
 
 
-  HAL_OPAMP_Start(&hopamp1);
-  HAL_OPAMP_Start(&hopamp2);
-  HAL_OPAMP_Start(&hopamp3);
-  HAL_OPAMP_Start(&hopamp4);
-  HAL_OPAMP_Start(&hopamp5);
-  HAL_OPAMP_Start(&hopamp6);
+  HAL_ADC_Start_DMA(&hadc5, BUFFER_SYS_ADC, 5);
+  HAL_TIM_Base_Start(&htim6);
+  HAL_TIM_Base_Start(&htim7);
 
 
   HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL);
@@ -267,6 +307,7 @@ int main(void)
 //	  HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_3);
 
 
+  View_DoubaoWelcome();
 //  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 2048);
 //HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
 //HAL_DAC_SetValue(&hdac2, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 3000);
@@ -277,13 +318,6 @@ int main(void)
 //HAL_DAC_Start(&hdac4, DAC_CHANNEL_1);
 
 
-//	HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, FEAnalog.OFFSET1);
-//	HAL_DAC_SetValue(&hdac2, DAC_CHANNEL_1, DAC_ALIGN_12B_R, FEAnalog.OFFSET2);
-//	HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
-//	HAL_DAC_Start(&hdac2, DAC_CHANNEL_1);
-	  ST7789_DrawImage(10, 10, 160, 160, (uint16_t *)doubao);
-
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -292,36 +326,36 @@ int main(void)
   {
 //	  ST7789_Test();
 //	  ST7789_WriteString(10, 10, " !\"#\%\$", Han_Array, WHITE, BLACK);
-	TLC5952_WriteLED();  // 发送数据
+
+
+	Analog_FE_Update();
+
+	View_Sensor();
+
+	HAL_ADC_Start_DMA(&hadc2, BUFFER_DPO_CH1, DPO_DEEP);
+
+
+    while (__HAL_DMA_GET_COUNTER(hadc2.DMA_Handle) != 0) {
+        // 等待 DMA 传输完成
+    }
+    printf("ADC DMA transfer completed!\n");
+
+    // 可以在这里处理 ADC 转换结果
+    for (int i = 0; i < DPO_DEEP; i++) {
+        printf("ADC: %d\n", BUFFER_DPO_CH1[i]);
+    }
+
+    HAL_Delay(100);
+
+	TLC5952_WriteLED();
 	TLC5952_WriteControl();
 
-	printf("123\r\n");
 
 
 
-	sprintf(BUFFER_Display,"ENC1:%5d",htim4.Instance->CNT);
-	ST7789_WriteString(200, 10, BUFFER_Display, Font_11x18, WHITE, BLACK);
-	sprintf(BUFFER_Display,"ENC2:%5d",htim3.Instance->CNT);
-	ST7789_WriteString(200, 40, BUFFER_Display, Font_11x18, WHITE, BLACK);
-	sprintf(BUFFER_Display,"ENC3:%5d",htim20.Instance->CNT);
-	ST7789_WriteString(200, 70, BUFFER_Display, Font_11x18, WHITE, BLACK);
-	sprintf(BUFFER_Display,"ENC4:%5d",htim1.Instance->CNT);
-	ST7789_WriteString(200, 100, BUFFER_Display, Font_11x18, WHITE, BLACK);
+	WS2812_Write_Colors(rainbow_colors, 10);
 
 
-
-	ST7789_WriteString(200, 130, " !\"#$\%", Han_Array, WHITE, BLACK);
-
-
-	ST7789_DrawTriangle(20, 210, 40, 200, 40, 220, WHITE);
-	ST7789_DrawCircle(90, 210, 10, WHITE);
-	ST7789_DrawRectangle(140, 200, 160, 220, WHITE);
-
-
-	WS2812_Set_All(color);
-	WS2812_Update();
-	  Analog_FE_Update();
-	    HAL_Delay(100);
 //	  HAL_ADC_Start(&hadc5);
 //	  result = HAL_ADC_GetValue(&hadc5);
 //
@@ -358,7 +392,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV2;
-  RCC_OscInitStruct.PLL.PLLN = 75;
+  RCC_OscInitStruct.PLL.PLLN = 90;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV6;
   RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
   RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
@@ -387,6 +421,133 @@ void SystemClock_Config(void)
 }
 
 /**
+  * @brief ADC2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_ADC2_Init(void)
+{
+
+  /* USER CODE BEGIN ADC2_Init 0 */
+
+  /* USER CODE END ADC2_Init 0 */
+
+  ADC_ChannelConfTypeDef sConfig = {0};
+
+  /* USER CODE BEGIN ADC2_Init 1 */
+
+  /* USER CODE END ADC2_Init 1 */
+
+  /** Common config
+  */
+  hadc2.Instance = ADC2;
+  hadc2.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
+  hadc2.Init.Resolution = ADC_RESOLUTION_12B;
+  hadc2.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc2.Init.GainCompensation = 0;
+  hadc2.Init.ScanConvMode = ADC_SCAN_DISABLE;
+  hadc2.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  hadc2.Init.LowPowerAutoWait = DISABLE;
+  hadc2.Init.ContinuousConvMode = DISABLE;
+  hadc2.Init.NbrOfConversion = 1;
+  hadc2.Init.DiscontinuousConvMode = DISABLE;
+  hadc2.Init.ExternalTrigConv = ADC_EXTERNALTRIG_T6_TRGO;
+  hadc2.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
+  hadc2.Init.DMAContinuousRequests = ENABLE;
+  hadc2.Init.Overrun = ADC_OVR_DATA_OVERWRITTEN;
+  hadc2.Init.OversamplingMode = DISABLE;
+  if (HAL_ADC_Init(&hadc2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_4;
+  sConfig.Rank = ADC_REGULAR_RANK_1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
+  sConfig.SingleDiff = ADC_SINGLE_ENDED;
+  sConfig.OffsetNumber = ADC_OFFSET_NONE;
+  sConfig.Offset = 0;
+  if (HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN ADC2_Init 2 */
+
+  /* USER CODE END ADC2_Init 2 */
+
+}
+
+/**
+  * @brief ADC3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_ADC3_Init(void)
+{
+
+  /* USER CODE BEGIN ADC3_Init 0 */
+
+  /* USER CODE END ADC3_Init 0 */
+
+  ADC_MultiModeTypeDef multimode = {0};
+  ADC_ChannelConfTypeDef sConfig = {0};
+
+  /* USER CODE BEGIN ADC3_Init 1 */
+
+  /* USER CODE END ADC3_Init 1 */
+
+  /** Common config
+  */
+  hadc3.Instance = ADC3;
+  hadc3.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
+  hadc3.Init.Resolution = ADC_RESOLUTION_12B;
+  hadc3.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc3.Init.GainCompensation = 0;
+  hadc3.Init.ScanConvMode = ADC_SCAN_DISABLE;
+  hadc3.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  hadc3.Init.LowPowerAutoWait = DISABLE;
+  hadc3.Init.ContinuousConvMode = DISABLE;
+  hadc3.Init.NbrOfConversion = 1;
+  hadc3.Init.DiscontinuousConvMode = DISABLE;
+  hadc3.Init.ExternalTrigConv = ADC_EXTERNALTRIG_T6_TRGO;
+  hadc3.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
+  hadc3.Init.DMAContinuousRequests = DISABLE;
+  hadc3.Init.Overrun = ADC_OVR_DATA_OVERWRITTEN;
+  hadc3.Init.OversamplingMode = DISABLE;
+  if (HAL_ADC_Init(&hadc3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure the ADC multi-mode
+  */
+  multimode.Mode = ADC_MODE_INDEPENDENT;
+  if (HAL_ADCEx_MultiModeConfigChannel(&hadc3, &multimode) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_5;
+  sConfig.Rank = ADC_REGULAR_RANK_1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
+  sConfig.SingleDiff = ADC_SINGLE_ENDED;
+  sConfig.OffsetNumber = ADC_OFFSET_NONE;
+  sConfig.Offset = 0;
+  if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN ADC3_Init 2 */
+
+  /* USER CODE END ADC3_Init 2 */
+
+}
+
+/**
   * @brief ADC5 Initialization Function
   * @param None
   * @retval None
@@ -407,20 +568,20 @@ static void MX_ADC5_Init(void)
   /** Common config
   */
   hadc5.Instance = ADC5;
-  hadc5.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV4;
+  hadc5.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
   hadc5.Init.Resolution = ADC_RESOLUTION_12B;
   hadc5.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc5.Init.GainCompensation = 0;
-  hadc5.Init.ScanConvMode = ADC_SCAN_DISABLE;
-  hadc5.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  hadc5.Init.ScanConvMode = ADC_SCAN_ENABLE;
+  hadc5.Init.EOCSelection = ADC_EOC_SEQ_CONV;
   hadc5.Init.LowPowerAutoWait = DISABLE;
-  hadc5.Init.ContinuousConvMode = DISABLE;
-  hadc5.Init.NbrOfConversion = 1;
+  hadc5.Init.ContinuousConvMode = ENABLE;
+  hadc5.Init.NbrOfConversion = 5;
   hadc5.Init.DiscontinuousConvMode = DISABLE;
-  hadc5.Init.ExternalTrigConv = ADC_SOFTWARE_START;
-  hadc5.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
-  hadc5.Init.DMAContinuousRequests = DISABLE;
-  hadc5.Init.Overrun = ADC_OVR_DATA_PRESERVED;
+  hadc5.Init.ExternalTrigConv = ADC_EXTERNALTRIG_T7_TRGO;
+  hadc5.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
+  hadc5.Init.DMAContinuousRequests = ENABLE;
+  hadc5.Init.Overrun = ADC_OVR_DATA_OVERWRITTEN;
   hadc5.Init.OversamplingMode = DISABLE;
   if (HAL_ADC_Init(&hadc5) != HAL_OK)
   {
@@ -431,10 +592,46 @@ static void MX_ADC5_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_2;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
+  sConfig.SamplingTime = ADC_SAMPLETIME_640CYCLES_5;
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
   sConfig.OffsetNumber = ADC_OFFSET_NONE;
   sConfig.Offset = 0;
+  if (HAL_ADC_ConfigChannel(&hadc5, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_TEMPSENSOR_ADC5;
+  sConfig.Rank = ADC_REGULAR_RANK_2;
+  if (HAL_ADC_ConfigChannel(&hadc5, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_VBAT;
+  sConfig.Rank = ADC_REGULAR_RANK_3;
+  if (HAL_ADC_ConfigChannel(&hadc5, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_VREFINT;
+  sConfig.Rank = ADC_REGULAR_RANK_4;
+  if (HAL_ADC_ConfigChannel(&hadc5, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Regular Channel
+  */
+  sConfig.Channel = ADC_CHANNEL_VOPAMP5;
+  sConfig.Rank = ADC_REGULAR_RANK_5;
   if (HAL_ADC_ConfigChannel(&hadc5, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -676,7 +873,7 @@ static void MX_I2C3_Init(void)
 
   /* USER CODE END I2C3_Init 1 */
   hi2c3.Instance = I2C3;
-  hi2c3.Init.Timing = 0x30D293D6;
+  hi2c3.Init.Timing = 0x10E32879;
   hi2c3.Init.OwnAddress1 = 0;
   hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
@@ -1066,7 +1263,7 @@ static void MX_TIM3_Init(void)
   htim3.Init.Period = 65535;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  sConfig.EncoderMode = TIM_ENCODERMODE_TI2;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
   sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
@@ -1115,7 +1312,7 @@ static void MX_TIM4_Init(void)
   htim4.Init.Period = 65535;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  sConfig.EncoderMode = TIM_ENCODERMODE_TI2;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI1;
   sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
   sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
   sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
@@ -1137,6 +1334,82 @@ static void MX_TIM4_Init(void)
   /* USER CODE BEGIN TIM4_Init 2 */
 
   /* USER CODE END TIM4_Init 2 */
+
+}
+
+/**
+  * @brief TIM6 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM6_Init(void)
+{
+
+  /* USER CODE BEGIN TIM6_Init 0 */
+
+  /* USER CODE END TIM6_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM6_Init 1 */
+
+  /* USER CODE END TIM6_Init 1 */
+  htim6.Instance = TIM6;
+  htim6.Init.Prescaler = 0;
+  htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim6.Init.Period = 149;
+  htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM6_Init 2 */
+
+  /* USER CODE END TIM6_Init 2 */
+
+}
+
+/**
+  * @brief TIM7 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM7_Init(void)
+{
+
+  /* USER CODE BEGIN TIM7_Init 0 */
+
+  /* USER CODE END TIM7_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM7_Init 1 */
+
+  /* USER CODE END TIM7_Init 1 */
+  htim7.Instance = TIM7;
+  htim7.Init.Prescaler = 180-1;
+  htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim7.Init.Period = 999;
+  htim7.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim7) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM7_Init 2 */
+
+  /* USER CODE END TIM7_Init 2 */
 
 }
 
@@ -1376,6 +1649,12 @@ static void MX_DMA_Init(void)
   /* DMA1_Channel3_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel3_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
+  /* DMA1_Channel4_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel4_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel4_IRQn);
+  /* DMA1_Channel5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
 
 }
 

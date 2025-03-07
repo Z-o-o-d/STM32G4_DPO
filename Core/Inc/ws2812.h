@@ -23,9 +23,21 @@
 #define WS2812_CHANNEL  TIM_CHANNEL_3
 
 extern uint16_t WS2812_Buf[];
+extern uint8_t WS2812_Brightness;
+
+
+
+// 定义位域结构体来表示 RGB 颜色
+typedef struct {
+    uint32_t red : 8;
+    uint32_t green : 8;
+    uint32_t blue : 8;
+} RGBColor;
 
 //基础控制函数
 void WS2812_Write_Data(uint32_t Color, uint8_t index);
 void WS2812_Set_All(uint32_t Color);
 void WS2812_Update(void);
+void WS2812_Write_Colors(RGBColor *colors, uint8_t count);
+
 #endif

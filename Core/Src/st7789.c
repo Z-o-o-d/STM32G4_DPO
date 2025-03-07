@@ -10,6 +10,8 @@ uint16_t DMA_MIN_SIZE = 16;
  */
  #define HOR_LEN 	5	//	Also mind the resolution of your screen!
 uint16_t disp_buf[ST7789_WIDTH * HOR_LEN];
+
+unsigned char BUFFER_Display[100]={0};
 #endif
 
 /**
@@ -745,3 +747,82 @@ void ST7789_Test(void)
 //	ST7789_DrawImage(0, 0, 128, 128, (uint16_t *)saber);
 //	HAL_Delay(3000);
 }
+
+
+
+
+extern ADC_HandleTypeDef hadc5;
+
+extern COMP_HandleTypeDef hcomp2;
+extern COMP_HandleTypeDef hcomp5;
+
+extern DAC_HandleTypeDef hdac1;
+extern DAC_HandleTypeDef hdac2;
+extern DAC_HandleTypeDef hdac4;
+
+extern I2C_HandleTypeDef hi2c3;
+
+extern UART_HandleTypeDef hlpuart1;
+
+extern OPAMP_HandleTypeDef hopamp1;
+extern OPAMP_HandleTypeDef hopamp2;
+extern OPAMP_HandleTypeDef hopamp3;
+extern OPAMP_HandleTypeDef hopamp4;
+extern OPAMP_HandleTypeDef hopamp5;
+extern OPAMP_HandleTypeDef hopamp6;
+
+extern SPI_HandleTypeDef hspi3;
+extern DMA_HandleTypeDef hdma_spi3_tx;
+
+extern TIM_HandleTypeDef htim1;
+extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim4;
+extern TIM_HandleTypeDef htim8;
+extern TIM_HandleTypeDef htim15;
+extern TIM_HandleTypeDef htim20;
+extern DMA_HandleTypeDef hdma_tim8_ch3;
+extern DMA_HandleTypeDef hdma_tim15_ch1;
+
+
+
+extern uint32_t BUFFER_SYS_ADC[5];
+
+
+void View_KingKong(void){
+		ST7789_DrawTriangle(20, 210, 40, 200, 40, 220, WHITE);
+		ST7789_DrawCircle(90, 210, 10, WHITE);
+		ST7789_DrawRectangle(140, 200, 160, 220, WHITE);
+	}
+
+
+void View_DoubaoWelcome(void){
+		ST7789_DrawImage(10, 10, 160, 160, (uint16_t *)doubao);
+		ST7789_WriteString(200, 130, " !\"#$\%", Han_Array, WHITE, BLACK);
+		ST7789_WriteString(170, 180, "&\'\(\)\*+,-.", Han_Array, WHITE, BLACK);
+	}
+
+void View_Sensor(void){
+	sprintf(BUFFER_Display,"ENC1:%5d",htim4.Instance->CNT);
+	ST7789_WriteString(200, 10, BUFFER_Display, Font_11x18, WHITE, BLACK);
+	sprintf(BUFFER_Display,"ENC2:%5d",htim3.Instance->CNT);
+	ST7789_WriteString(200, 40, BUFFER_Display, Font_11x18, WHITE, BLACK);
+	sprintf(BUFFER_Display,"ENC3:%5d",htim20.Instance->CNT);
+	ST7789_WriteString(200, 70, BUFFER_Display, Font_11x18, WHITE, BLACK);
+	sprintf(BUFFER_Display,"ENC4:%5d",htim1.Instance->CNT);
+	ST7789_WriteString(200, 100, BUFFER_Display, Font_11x18, WHITE, BLACK);
+
+	sprintf(BUFFER_Display,"KEYs:%5d",BUFFER_SYS_ADC[0]);
+	ST7789_WriteString(200, 130, BUFFER_Display, Font_11x18, WHITE, BLACK);
+
+	float temperate=(((float)BUFFER_SYS_ADC[1]*(3.3/4096)-0.76)/0.0025 + 30); //转换为温度值;
+	sprintf(BUFFER_Display,"TEMP:%4.1f",temperate);
+	ST7789_WriteString(200, 160, BUFFER_Display, Font_11x18, WHITE, BLACK);
+
+	sprintf(BUFFER_Display,"Vbat:%5d",BUFFER_SYS_ADC[2]);
+	ST7789_WriteString(200, 190, BUFFER_Display, Font_11x18, WHITE, BLACK);
+
+	sprintf(BUFFER_Display,"Vref:%5d",BUFFER_SYS_ADC[3]);
+	ST7789_WriteString(200, 220, BUFFER_Display, Font_11x18, WHITE, BLACK);
+
+	}
+

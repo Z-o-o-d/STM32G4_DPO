@@ -4,6 +4,8 @@
 #include "fonts.h"
 #include "main.h"
 
+
+
 /* choose a Hardware SPI port to use. */
 #define ST7789_SPI_PORT hspi3
 extern SPI_HandleTypeDef ST7789_SPI_PORT;
@@ -295,6 +297,17 @@ void ST7789_TearEffect(uint8_t tear);
 
 /* Simple test function. */
 void ST7789_Test(void);
+
+
+
+/* Views */
+
+void View_KingKong(void);
+
+void View_DoubaoWelcome(void);
+
+void View_Sensor(void);
+
 
 #ifndef ST7789_ROTATION
     #error You should at least choose a display rotation!
