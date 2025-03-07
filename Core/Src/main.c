@@ -160,7 +160,7 @@ unsigned char BUFFER_CDC[500]={"abcd\r\n"};
 uint32_t BUFFER_SYS_ADC[5]={0};
 uint32_t BUFFER_DPO_CH1[DPO_DEEP]={0};
 
-uint32_t color = 0x000f00;
+uint32_t color = 0x000000;
 
 
 
@@ -392,7 +392,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV2;
-  RCC_OscInitStruct.PLL.PLLN = 90;
+  RCC_OscInitStruct.PLL.PLLN = 75;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV6;
   RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
   RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
@@ -559,6 +559,7 @@ static void MX_ADC5_Init(void)
 
   /* USER CODE END ADC5_Init 0 */
 
+  ADC_AnalogWDGConfTypeDef AnalogWDGConfig = {0};
   ADC_ChannelConfTypeDef sConfig = {0};
 
   /* USER CODE BEGIN ADC5_Init 1 */
@@ -584,6 +585,20 @@ static void MX_ADC5_Init(void)
   hadc5.Init.Overrun = ADC_OVR_DATA_OVERWRITTEN;
   hadc5.Init.OversamplingMode = DISABLE;
   if (HAL_ADC_Init(&hadc5) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Analog WatchDog 1
+  */
+  AnalogWDGConfig.WatchdogNumber = ADC_ANALOGWATCHDOG_1;
+  AnalogWDGConfig.WatchdogMode = ADC_ANALOGWATCHDOG_SINGLE_REG;
+  AnalogWDGConfig.Channel = ADC_CHANNEL_2;
+  AnalogWDGConfig.ITMode = ENABLE;
+  AnalogWDGConfig.HighThreshold = 4095;
+  AnalogWDGConfig.LowThreshold = 3500;
+  AnalogWDGConfig.FilteringConfig = ADC_AWD_FILTERING_NONE;
+  if (HAL_ADC_AnalogWDGConfig(&hadc5, &AnalogWDGConfig) != HAL_OK)
   {
     Error_Handler();
   }

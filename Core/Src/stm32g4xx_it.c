@@ -73,6 +73,7 @@
 extern PCD_HandleTypeDef hpcd_USB_FS;
 extern DMA_HandleTypeDef hdma_adc2;
 extern DMA_HandleTypeDef hdma_adc5;
+extern ADC_HandleTypeDef hadc5;
 extern DMA_HandleTypeDef hdma_spi3_tx;
 extern DMA_HandleTypeDef hdma_tim8_ch3;
 extern DMA_HandleTypeDef hdma_tim15_ch1;
@@ -403,6 +404,22 @@ void EXTI15_10_IRQHandler(void)
   /* USER CODE BEGIN EXTI15_10_IRQn 1 */
 
   /* USER CODE END EXTI15_10_IRQn 1 */
+}
+
+/**
+  * @brief This function handles ADC5 global interrupt.
+  */
+void ADC5_IRQHandler(void)
+{
+  /* USER CODE BEGIN ADC5_IRQn 0 */
+
+
+
+  /* USER CODE END ADC5_IRQn 0 */
+  HAL_ADC_IRQHandler(&hadc5);
+  /* USER CODE BEGIN ADC5_IRQn 1 */
+
+  /* USER CODE END ADC5_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

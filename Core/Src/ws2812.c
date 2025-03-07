@@ -16,7 +16,7 @@
 //WS2812 DMA缓存数组
 uint16_t WS2812_Buf[WS2812_BUF_SIZE] = { 0 };
 extern TIM_HandleTypeDef WS2812_TIM;
-uint8_t WS2812_Brightness = 127;
+uint8_t WS2812_Brightness = 10;
 
 
 

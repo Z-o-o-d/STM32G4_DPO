@@ -220,10 +220,10 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     /**ADC5 GPIO Configuration
     PA9     ------> ADC5_IN2
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_9;
+    GPIO_InitStruct.Pin = ADC_KEY_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    HAL_GPIO_Init(ADC_KEY_GPIO_Port, &GPIO_InitStruct);
 
     /* ADC5 DMA Init */
     /* ADC5 Init */
@@ -243,6 +243,9 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
 
     __HAL_LINKDMA(hadc,DMA_Handle,hdma_adc5);
 
+    /* ADC5 interrupt Init */
+    HAL_NVIC_SetPriority(ADC5_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(ADC5_IRQn);
   /* USER CODE BEGIN ADC5_MspInit 1 */
 
   /* USER CODE END ADC5_MspInit 1 */
@@ -311,10 +314,13 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
     /**ADC5 GPIO Configuration
     PA9     ------> ADC5_IN2
     */
-    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_9);
+    HAL_GPIO_DeInit(ADC_KEY_GPIO_Port, ADC_KEY_Pin);
 
     /* ADC5 DMA DeInit */
     HAL_DMA_DeInit(hadc->DMA_Handle);
+
+    /* ADC5 interrupt DeInit */
+    HAL_NVIC_DisableIRQ(ADC5_IRQn);
   /* USER CODE BEGIN ADC5_MspDeInit 1 */
 
   /* USER CODE END ADC5_MspDeInit 1 */

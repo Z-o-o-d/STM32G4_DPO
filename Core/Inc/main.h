@@ -75,6 +75,8 @@ void Error_Handler(void);
 #define CD_CH1_B_GPIO_Port GPIOB
 #define CD_CH1_C_Pin GPIO_PIN_8
 #define CD_CH1_C_GPIO_Port GPIOA
+#define ADC_KEY_Pin GPIO_PIN_9
+#define ADC_KEY_GPIO_Port GPIOA
 #define ST7789_DC_Pin GPIO_PIN_11
 #define ST7789_DC_GPIO_Port GPIOC
 #define FT6336_RST_Pin GPIO_PIN_2
