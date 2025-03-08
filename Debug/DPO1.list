@@ -35,17 +35,17 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  15 .debug_rnglists 0000211b  00000000  00000000  000626f8  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_macro  00032e28  00000000  00000000  00064813  2**0
+ 16 .debug_macro  00032e22  00000000  00000000  00064813  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line   000367a8  00000000  00000000  0009763b  2**0
+ 17 .debug_line   000367a8  00000000  00000000  00097635  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 18 .debug_str    0014ab88  00000000  00000000  000cdde3  2**0
+ 18 .debug_str    0014ab74  00000000  00000000  000cdddd  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .comment      00000043  00000000  00000000  0021896b  2**0
+ 19 .comment      00000043  00000000  00000000  00218951  2**0
                   CONTENTS, READONLY
- 20 .debug_frame  0000ce4c  00000000  00000000  002189b0  2**2
+ 20 .debug_frame  0000ce4c  00000000  00000000  00218994  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 21 .debug_line_str 00000059  00000000  00000000  002257fc  2**0
+ 21 .debug_line_str 00000059  00000000  00000000  002257e0  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -3788,8 +3788,8 @@ static void MX_HRTIM1_Init(void)
     Error_Handler();
  8001ef0:	f000 fe64 	bl	8002bbc <Error_Handler>
   }
-  pCompareCfg.CompareValue = 96 * TIMC_DUTY_CYCLE;
- 8001ef4:	234c      	movs	r3, #76	@ 0x4c
+  pCompareCfg.CompareValue = 48;
+ 8001ef4:	2330      	movs	r3, #48	@ 0x30
  8001ef6:	623b      	str	r3, [r7, #32]
   if (HAL_HRTIM_WaveformCompareConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, HRTIM_COMPAREUNIT_1, &pCompareCfg) != HAL_OK)
  8001ef8:	f107 0320 	add.w	r3, r7, #32

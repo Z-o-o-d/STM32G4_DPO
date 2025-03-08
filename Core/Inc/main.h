@@ -61,7 +61,6 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define TIMC_DUTY_CYCLE 0.8
 #define AC_DC_CH2_Pin GPIO_PIN_13
 #define AC_DC_CH2_GPIO_Port GPIOC
 #define CD_CH2_A_Pin GPIO_PIN_14
