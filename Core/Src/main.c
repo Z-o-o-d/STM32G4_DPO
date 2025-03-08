@@ -61,6 +61,7 @@ ADC_HandleTypeDef hadc2;
 ADC_HandleTypeDef hadc3;
 ADC_HandleTypeDef hadc5;
 DMA_HandleTypeDef hdma_adc2;
+DMA_HandleTypeDef hdma_adc3;
 DMA_HandleTypeDef hdma_adc5;
 
 COMP_HandleTypeDef hcomp2;
@@ -70,6 +71,8 @@ DAC_HandleTypeDef hdac1;
 DAC_HandleTypeDef hdac2;
 DAC_HandleTypeDef hdac4;
 
+HRTIM_HandleTypeDef hhrtim1;
+
 I2C_HandleTypeDef hi2c3;
 
 UART_HandleTypeDef hlpuart1;
@@ -77,7 +80,6 @@ UART_HandleTypeDef hlpuart1;
 OPAMP_HandleTypeDef hopamp1;
 OPAMP_HandleTypeDef hopamp2;
 OPAMP_HandleTypeDef hopamp3;
-OPAMP_HandleTypeDef hopamp4;
 OPAMP_HandleTypeDef hopamp5;
 OPAMP_HandleTypeDef hopamp6;
 
@@ -122,12 +124,12 @@ static void MX_SPI3_Init(void);
 static void MX_I2C3_Init(void);
 static void MX_DAC4_Init(void);
 static void MX_LPUART1_UART_Init(void);
-static void MX_OPAMP4_Init(void);
 static void MX_OPAMP5_Init(void);
 static void MX_TIM7_Init(void);
 static void MX_ADC2_Init(void);
 static void MX_ADC3_Init(void);
 static void MX_TIM6_Init(void);
+static void MX_HRTIM1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -145,33 +147,51 @@ int __io_putchar(int ch)
 
 
 
-
-
-//int fputc(int ch, FILE *f)
-//{
-//  HAL_UART_Transmit(&hlpuart1, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
-//  return ch;
-//}
-
 #define DPO_DEEP 1024
+#define DPO_DEEP_HALF DPO_DEEP/2
 
 unsigned char BUFFER_CDC[500]={"abcd\r\n"};
 
 uint32_t BUFFER_SYS_ADC[5]={0};
 uint32_t BUFFER_DPO_CH1[DPO_DEEP]={0};
+uint32_t BUFFER_DPO_CH2[DPO_DEEP]={0};
+
+
+uint32_t BUFFER_DPO_CH1_PROC[DPO_DEEP]={0};
+uint32_t BUFFER_DPO_CH2_PROC[DPO_DEEP]={0};
+
+uint16_t DDS_Onboard_Period = 96;
+uint16_t DDS_Onboard_COMPAREUNIT = 48;
+
+
 
 uint32_t color = 0x000000;
 
 
+uint64_t DEBUG_COUNT = 0;
 
-typedef struct {
-	GPIO_PinState AC_DC_CH1 : 1;
-	GPIO_PinState AC_DC_CH2 : 1;
-	GPIO_PinState CD_CH1 : 3;
-	GPIO_PinState CD_CH2 : 3;
-	uint16_t OFFSET1 :12;
-	uint16_t OFFSET2 :12;
-} FEAnalogStates;
+uint16_t prev_cnt1 = 0;
+uint16_t prev_cnt3 = 0;
+uint16_t prev_cnt4 = 0;
+uint16_t prev_cnt20 = 0;
+
+Input_HandleTypeDef input={0};
+
+// 彩虹颜色配置
+RGBColor rainbow_colors[10] = {
+    {255,   0,   0},
+    {255, 115,   0},
+    {255, 201,   0},
+    {229, 242,   0},
+    { 51, 153,   0},
+    {  0,  64, 127},
+    { 14,   0, 230},
+    { 67,   0, 142},
+    {172,  77, 194},
+    {243,  91, 166}
+};
+
+
 
 
 FEAnalogStates FEAnalog = {
@@ -196,27 +216,82 @@ void Analog_FE_Update(void) {
 	HAL_GPIO_WritePin(CD_CH2_B_GPIO_Port, CD_CH2_B_Pin, (GPIO_PinState)((FEAnalog.CD_CH2 >> 1) & 0x01));
 	HAL_GPIO_WritePin(CD_CH2_C_GPIO_Port, CD_CH2_C_Pin, (GPIO_PinState)((FEAnalog.CD_CH2 >> 2) & 0x01));
 
-	HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, FEAnalog.OFFSET1);
-	HAL_DAC_SetValue(&hdac2, DAC_CHANNEL_1, DAC_ALIGN_12B_R, FEAnalog.OFFSET2);
-	HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
+	//SET OFFSET
+	HAL_DAC_SetValue(&hdac2, DAC_CHANNEL_1, DAC_ALIGN_12B_R, FEAnalog.OFFSET1);
+	HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, FEAnalog.OFFSET2);
 	HAL_DAC_Start(&hdac2, DAC_CHANNEL_1);
+	HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
+}
+
+
+void DDS_Onboard_Update(void) {
+__HAL_HRTIM_SETPERIOD(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, DDS_Onboard_Period);
+__HAL_HRTIM_SETCOMPARE(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C , HRTIM_COMPAREUNIT_1, DDS_Onboard_COMPAREUNIT);
+}
+
+
+
+// 编码器处理函数
+void KEY_PROCESS(void) {
 
 }
 
 
-// 彩虹颜色配置
-RGBColor rainbow_colors[10] = {
-    {255,   0,   0},
-    {255, 115,   0},
-    {255, 201,   0},
-    {229, 242,   0},
-    { 51, 153,   0},
-    {  0,  64, 127},
-    { 14,   0, 230},
-    { 67,   0, 142},
-    {172,  77, 194},
-    {243,  91, 166}
-};
+// 编码器处理函数
+void ENC_PROCESS(void) {
+
+	//处理会越界，不管了
+    // 读取 TIM1 的计数器值
+    uint32_t current_cnt1 = htim1.Instance->CNT;
+    int32_t diff1 = (int32_t)(current_cnt1 - prev_cnt1);
+    uint32_t abs_diff1 = abs(diff1);
+    if (diff1 > 0) {
+        WS2812_Brightness += abs_diff1;
+        htim8.Instance->CCR1+=abs_diff1;
+
+    } else if (diff1 < 0) {
+            WS2812_Brightness -= abs_diff1;
+            htim8.Instance->CCR1-=abs_diff1;
+    }
+    prev_cnt1 = current_cnt1;
+
+    // 读取 TIM3 的计数器值
+    uint32_t current_cnt3 = htim3.Instance->CNT;
+    int32_t diff3 = (int32_t)(current_cnt3 - prev_cnt3);
+    uint32_t abs_diff3 = abs(diff3);
+    if (diff3 > 0) {
+        // 可根据实际需求添加处理逻辑
+    } else if (diff3 < 0) {
+        // 可根据实际需求添加处理逻辑
+    }
+    prev_cnt3 = current_cnt3;
+
+    // 读取 TIM4 的计数器值
+    uint32_t current_cnt4 = htim4.Instance->CNT;
+    int32_t diff4 = (int32_t)(current_cnt4 - prev_cnt4);
+    uint32_t abs_diff4 = abs(diff4);
+    if (diff4 > 0) {
+        // 可根据实际需求添加处理逻辑
+    } else if (diff4 < 0) {
+        // 可根据实际需求添加处理逻辑
+    }
+    prev_cnt4 = current_cnt4;
+
+    // 读取 TIM20 的计数器值
+    uint32_t current_cnt20 = htim20.Instance->CNT;
+    int32_t diff20 = (int32_t)(current_cnt20 - prev_cnt20);
+    uint32_t abs_diff20 = abs(diff20);
+    if (diff20 > 0) {
+        // 可根据实际需求添加处理逻辑
+    } else if (diff20 < 0) {
+        // 可根据实际需求添加处理逻辑
+    }
+    prev_cnt20 = current_cnt20;
+}
+
+
+
+
 
 /* USER CODE END 0 */
 
@@ -270,12 +345,12 @@ int main(void)
   MX_I2C3_Init();
   MX_DAC4_Init();
   MX_LPUART1_UART_Init();
-  MX_OPAMP4_Init();
   MX_OPAMP5_Init();
   MX_TIM7_Init();
   MX_ADC2_Init();
   MX_ADC3_Init();
   MX_TIM6_Init();
+  MX_HRTIM1_Init();
   /* USER CODE BEGIN 2 */
 
 
@@ -288,6 +363,8 @@ int main(void)
 //  HAL_OPAMP_Start(&hopamp5);
 //  HAL_OPAMP_Start(&hopamp6);
 
+	HAL_ADC_Start_DMA(&hadc2, BUFFER_DPO_CH1, DPO_DEEP);
+	HAL_ADC_Start_DMA(&hadc3, BUFFER_DPO_CH2, DPO_DEEP);
 
   HAL_ADC_Start_DMA(&hadc5, BUFFER_SYS_ADC, 5);
   HAL_TIM_Base_Start(&htim6);
@@ -302,18 +379,20 @@ int main(void)
 
   HAL_TIM_PWM_Start(&htim15, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1);
+
+
   FT6336_Init();
   ST7789_Init();
-//	  HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_3);
 
 
   View_DoubaoWelcome();
-//  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 2048);
-//HAL_DAC_Start(&hdac1, DAC_CHANNEL_1);
-//HAL_DAC_SetValue(&hdac2, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 3000);
-//HAL_DAC_Start(&hdac2, DAC_CHANNEL_1);
-//  HAL_DAC_Start(&hdac4, DAC_CHANNEL_1);
-//
+
+
+  HAL_HRTIM_WaveformOutputStart(&hhrtim1, HRTIM_OUTPUT_TC1);  // Enable the generation of the waveform signal on the designated output
+  HAL_HRTIM_WaveformCounterStart(&hhrtim1, HRTIM_TIMERID_TIMER_C);  // Start the counter of the Timer A operating in waveform mode
+
+
+
 //  HAL_DAC_SetValue(&hdac4, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 2048);
 //HAL_DAC_Start(&hdac4, DAC_CHANNEL_1);
 
@@ -324,28 +403,31 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	ENC_PROCESS();
 //	  ST7789_Test();
 //	  ST7789_WriteString(10, 10, " !\"#\%\$", Han_Array, WHITE, BLACK);
 
 
 	Analog_FE_Update();
 
+
 	View_Sensor();
 
-	HAL_ADC_Start_DMA(&hadc2, BUFFER_DPO_CH1, DPO_DEEP);
 
 
-    while (__HAL_DMA_GET_COUNTER(hadc2.DMA_Handle) != 0) {
-        // 等待 DMA 传输完成
-    }
-    printf("ADC DMA transfer completed!\n");
+//    while (__HAL_DMA_GET_COUNTER(hadc2.DMA_Handle) != 0) {
+//        // 等待 DMA 传输完成
+//    }
+//    printf("ADC DMA transfer completed!\n");
 
     // 可以在这里处理 ADC 转换结果
     for (int i = 0; i < DPO_DEEP; i++) {
+//        sprintf(BUFFER_CDC,"ADC: %d\n", BUFFER_DPO_CH1[i]);
+//    	CDC_Transmit_FS(BUFFER_CDC, strlen(BUFFER_CDC));
         printf("ADC: %d\n", BUFFER_DPO_CH1[i]);
+
     }
 
-    HAL_Delay(100);
 
 	TLC5952_WriteLED();
 	TLC5952_WriteControl();
@@ -354,7 +436,6 @@ int main(void)
 
 
 	WS2812_Write_Colors(rainbow_colors, 10);
-
 
 //	  HAL_ADC_Start(&hadc5);
 //	  result = HAL_ADC_GetValue(&hadc5);
@@ -392,7 +473,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV2;
-  RCC_OscInitStruct.PLL.PLLN = 75;
+  RCC_OscInitStruct.PLL.PLLN = 90;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV6;
   RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
   RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
@@ -513,7 +594,7 @@ static void MX_ADC3_Init(void)
   hadc3.Init.DiscontinuousConvMode = DISABLE;
   hadc3.Init.ExternalTrigConv = ADC_EXTERNALTRIG_T6_TRGO;
   hadc3.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
-  hadc3.Init.DMAContinuousRequests = DISABLE;
+  hadc3.Init.DMAContinuousRequests = ENABLE;
   hadc3.Init.Overrun = ADC_OVR_DATA_OVERWRITTEN;
   hadc3.Init.OversamplingMode = DISABLE;
   if (HAL_ADC_Init(&hadc3) != HAL_OK)
@@ -873,6 +954,108 @@ static void MX_DAC4_Init(void)
 }
 
 /**
+  * @brief HRTIM1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_HRTIM1_Init(void)
+{
+
+  /* USER CODE BEGIN HRTIM1_Init 0 */
+
+  /* USER CODE END HRTIM1_Init 0 */
+
+  HRTIM_TimeBaseCfgTypeDef pTimeBaseCfg = {0};
+  HRTIM_TimerCtlTypeDef pTimerCtl = {0};
+  HRTIM_TimerCfgTypeDef pTimerCfg = {0};
+  HRTIM_CompareCfgTypeDef pCompareCfg = {0};
+  HRTIM_OutputCfgTypeDef pOutputCfg = {0};
+
+  /* USER CODE BEGIN HRTIM1_Init 1 */
+
+  /* USER CODE END HRTIM1_Init 1 */
+  hhrtim1.Instance = HRTIM1;
+  hhrtim1.Init.HRTIMInterruptResquests = HRTIM_IT_NONE;
+  hhrtim1.Init.SyncOptions = HRTIM_SYNCOPTION_NONE;
+  if (HAL_HRTIM_Init(&hhrtim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_HRTIM_DLLCalibrationStart(&hhrtim1, HRTIM_CALIBRATIONRATE_3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_HRTIM_PollForDLLCalibration(&hhrtim1, 10) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  pTimeBaseCfg.Period = 96;
+  pTimeBaseCfg.RepetitionCounter = 0x00;
+  pTimeBaseCfg.PrescalerRatio = HRTIM_PRESCALERRATIO_MUL32;
+  pTimeBaseCfg.Mode = HRTIM_MODE_CONTINUOUS;
+  if (HAL_HRTIM_TimeBaseConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, &pTimeBaseCfg) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  pTimerCtl.UpDownMode = HRTIM_TIMERUPDOWNMODE_UP;
+  pTimerCtl.GreaterCMP1 = HRTIM_TIMERGTCMP1_EQUAL;
+  pTimerCtl.DualChannelDacEnable = HRTIM_TIMER_DCDE_DISABLED;
+  if (HAL_HRTIM_WaveformTimerControl(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, &pTimerCtl) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  pTimerCfg.InterruptRequests = HRTIM_TIM_IT_NONE;
+  pTimerCfg.DMARequests = HRTIM_TIM_DMA_NONE;
+  pTimerCfg.DMASrcAddress = 0x0000;
+  pTimerCfg.DMADstAddress = 0x0000;
+  pTimerCfg.DMASize = 0x1;
+  pTimerCfg.HalfModeEnable = HRTIM_HALFMODE_DISABLED;
+  pTimerCfg.InterleavedMode = HRTIM_INTERLEAVED_MODE_DISABLED;
+  pTimerCfg.StartOnSync = HRTIM_SYNCSTART_DISABLED;
+  pTimerCfg.ResetOnSync = HRTIM_SYNCRESET_DISABLED;
+  pTimerCfg.DACSynchro = HRTIM_DACSYNC_NONE;
+  pTimerCfg.PreloadEnable = HRTIM_PRELOAD_DISABLED;
+  pTimerCfg.UpdateGating = HRTIM_UPDATEGATING_INDEPENDENT;
+  pTimerCfg.BurstMode = HRTIM_TIMERBURSTMODE_MAINTAINCLOCK;
+  pTimerCfg.RepetitionUpdate = HRTIM_UPDATEONREPETITION_DISABLED;
+  pTimerCfg.PushPull = HRTIM_TIMPUSHPULLMODE_DISABLED;
+  pTimerCfg.FaultEnable = HRTIM_TIMFAULTENABLE_NONE;
+  pTimerCfg.FaultLock = HRTIM_TIMFAULTLOCK_READWRITE;
+  pTimerCfg.DeadTimeInsertion = HRTIM_TIMDEADTIMEINSERTION_DISABLED;
+  pTimerCfg.DelayedProtectionMode = HRTIM_TIMER_A_B_C_DELAYEDPROTECTION_DISABLED;
+  pTimerCfg.UpdateTrigger = HRTIM_TIMUPDATETRIGGER_NONE;
+  pTimerCfg.ResetTrigger = HRTIM_TIMRESETTRIGGER_NONE;
+  pTimerCfg.ResetUpdate = HRTIM_TIMUPDATEONRESET_DISABLED;
+  pTimerCfg.ReSyncUpdate = HRTIM_TIMERESYNC_UPDATE_UNCONDITIONAL;
+  if (HAL_HRTIM_WaveformTimerConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, &pTimerCfg) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  pCompareCfg.CompareValue = 96 * TIMC_DUTY_CYCLE;
+  if (HAL_HRTIM_WaveformCompareConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, HRTIM_COMPAREUNIT_1, &pCompareCfg) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  pOutputCfg.Polarity = HRTIM_OUTPUTPOLARITY_HIGH;
+  pOutputCfg.SetSource = HRTIM_OUTPUTSET_TIMPER;
+  pOutputCfg.ResetSource = HRTIM_OUTPUTRESET_TIMCMP1;
+  pOutputCfg.IdleMode = HRTIM_OUTPUTIDLEMODE_NONE;
+  pOutputCfg.IdleLevel = HRTIM_OUTPUTIDLELEVEL_INACTIVE;
+  pOutputCfg.FaultLevel = HRTIM_OUTPUTFAULTLEVEL_NONE;
+  pOutputCfg.ChopperModeEnable = HRTIM_OUTPUTCHOPPERMODE_DISABLED;
+  pOutputCfg.BurstModeEntryDelayed = HRTIM_OUTPUTBURSTMODEENTRY_REGULAR;
+  if (HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, HRTIM_OUTPUT_TC1, &pOutputCfg) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN HRTIM1_Init 2 */
+
+  /* USER CODE END HRTIM1_Init 2 */
+  HAL_HRTIM_MspPostInit(&hhrtim1);
+
+}
+
+/**
   * @brief I2C3 Initialization Function
   * @param None
   * @retval None
@@ -1062,38 +1245,6 @@ static void MX_OPAMP3_Init(void)
   /* USER CODE BEGIN OPAMP3_Init 2 */
 
   /* USER CODE END OPAMP3_Init 2 */
-
-}
-
-/**
-  * @brief OPAMP4 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_OPAMP4_Init(void)
-{
-
-  /* USER CODE BEGIN OPAMP4_Init 0 */
-
-  /* USER CODE END OPAMP4_Init 0 */
-
-  /* USER CODE BEGIN OPAMP4_Init 1 */
-
-  /* USER CODE END OPAMP4_Init 1 */
-  hopamp4.Instance = OPAMP4;
-  hopamp4.Init.PowerMode = OPAMP_POWERMODE_HIGHSPEED;
-  hopamp4.Init.Mode = OPAMP_FOLLOWER_MODE;
-  hopamp4.Init.NonInvertingInput = OPAMP_NONINVERTINGINPUT_DAC;
-  hopamp4.Init.InternalOutput = DISABLE;
-  hopamp4.Init.TimerControlledMuxmode = OPAMP_TIMERCONTROLLEDMUXMODE_DISABLE;
-  hopamp4.Init.UserTrimming = OPAMP_TRIMMING_FACTORY;
-  if (HAL_OPAMP_Init(&hopamp4) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN OPAMP4_Init 2 */
-
-  /* USER CODE END OPAMP4_Init 2 */
 
 }
 
@@ -1670,6 +1821,9 @@ static void MX_DMA_Init(void)
   /* DMA1_Channel5_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel5_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
+  /* DMA1_Channel6_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel6_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
 
 }
 
@@ -1787,6 +1941,35 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+//void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
+//{
+// /* Prevent unused argument(s) compilation warning */
+////	 ADC_VALUE = ADC_BUFFER[1];
+//
+//	for (size_t i = 0; i < DPO_DEEP_HALF; i++) {
+//		BUFFER_DPO_CH2[i] = BUFFER_DPO_CH1[i];
+//
+//	}
+//
+// /* NOTE : This function should not be modified. When the callback is needed,
+//           function HAL_ADC_ConvCpltCallback must be implemented in the user file.
+//  */
+//}
+//
+//
+// void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef *hadc)
+//{
+//  /* Prevent unused argument(s) compilation warning */
+//
+//		for (size_t i = DPO_DEEP_HALF; i < DPO_DEEP; i++) {
+//			BUFFER_DPO_CH2[i] = BUFFER_DPO_CH1[i];
+//
+//		}
+//
+//  /* NOTE : This function should not be modified. When the callback is needed,
+//            function HAL_ADC_ConvHalfCpltCallback must be implemented in the user file.
+//  */
+//}
 
 /* USER CODE END 4 */
 

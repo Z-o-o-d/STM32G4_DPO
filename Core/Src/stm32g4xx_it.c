@@ -72,12 +72,23 @@
 /* External variables --------------------------------------------------------*/
 extern PCD_HandleTypeDef hpcd_USB_FS;
 extern DMA_HandleTypeDef hdma_adc2;
+extern DMA_HandleTypeDef hdma_adc3;
 extern DMA_HandleTypeDef hdma_adc5;
 extern ADC_HandleTypeDef hadc5;
 extern DMA_HandleTypeDef hdma_spi3_tx;
 extern DMA_HandleTypeDef hdma_tim8_ch3;
 extern DMA_HandleTypeDef hdma_tim15_ch1;
 /* USER CODE BEGIN EV */
+
+
+extern uint32_t BUFFER_SYS_ADC[5];
+
+extern uint64_t DEBUG_COUNT;
+
+
+
+extern Input_HandleTypeDef input;
+
 
 /* USER CODE END EV */
 
@@ -361,6 +372,20 @@ void DMA1_Channel5_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles DMA1 channel6 global interrupt.
+  */
+void DMA1_Channel6_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Channel6_IRQn 0 */
+
+  /* USER CODE END DMA1_Channel6_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_adc3);
+  /* USER CODE BEGIN DMA1_Channel6_IRQn 1 */
+
+  /* USER CODE END DMA1_Channel6_IRQn 1 */
+}
+
+/**
   * @brief This function handles USB low priority interrupt remap.
   */
 void USB_LP_IRQHandler(void)
@@ -380,6 +405,7 @@ void USB_LP_IRQHandler(void)
 void EXTI9_5_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI9_5_IRQn 0 */
+	DEBUG_COUNT++;
 
   /* USER CODE END EXTI9_5_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_8);
@@ -413,6 +439,17 @@ void ADC5_IRQHandler(void)
 {
   /* USER CODE BEGIN ADC5_IRQn 0 */
 
+	uint32_t value = BUFFER_SYS_ADC[0];
+
+    if (value >= 0 && value < 1500) {
+    	input.KEY_ENC0=1;
+    } else if (value >= 1500 && value < 2250) {
+    	input.KEY_ENC1=1;
+    } else if (value >= 2250 && value < 2750) {
+    	input.KEY_ENC2=1;
+    } else if (value >= 2750 && value <= 3500) {
+    	input.KEY_ENC3=1;
+    }
 
 
   /* USER CODE END ADC5_IRQn 0 */

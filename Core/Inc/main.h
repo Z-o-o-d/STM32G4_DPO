@@ -49,6 +49,8 @@ extern "C" {
 
 /* USER CODE END EM */
 
+void HAL_HRTIM_MspPostInit(HRTIM_HandleTypeDef *hhrtim);
+
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* Exported functions prototypes ---------------------------------------------*/
@@ -59,6 +61,7 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define TIMC_DUTY_CYCLE 0.8
 #define AC_DC_CH2_Pin GPIO_PIN_13
 #define AC_DC_CH2_GPIO_Port GPIOC
 #define CD_CH2_A_Pin GPIO_PIN_14
@@ -89,6 +92,39 @@ void Error_Handler(void);
 #define TLC5952_SIN_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
+
+
+#define DDS_Onboard_TIM_HandleTypeDef HRTIM_TIMERINDEX_TIMER_C
+#define DDS_Onboard_TIM_CH HRTIM_COMPAREUNIT_1
+
+#define LCD_BRIGHTNESS TIM8
+
+typedef struct {
+  // 使用位域来表示18个按键，每个按键占1位
+  unsigned int KEY0      : 1;
+  unsigned int KEY1      : 1;
+  unsigned int KEY2      : 1;
+  unsigned int KEY3      : 1;
+  unsigned int KEY4      : 1;
+  unsigned int KEY5      : 1;
+  unsigned int KEY_ENC0  : 1;
+  unsigned int KEY_ENC1  : 1;
+  unsigned int KEY_ENC2  : 1;
+  unsigned int KEY_ENC3  : 1;
+  // xy坐标，假设使用足够表示相应范围的整数类型
+  uint16_t touch_x;
+  uint16_t touch_y;
+} Input_HandleTypeDef;
+
+
+typedef struct {
+	GPIO_PinState AC_DC_CH1 : 1;
+	GPIO_PinState AC_DC_CH2 : 1;
+	GPIO_PinState CD_CH1 : 3;
+	GPIO_PinState CD_CH2 : 3;
+	uint16_t OFFSET1 :12;
+	uint16_t OFFSET2 :12;
+} FEAnalogStates;
 
 /* USER CODE END Private defines */
 

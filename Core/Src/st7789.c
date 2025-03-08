@@ -797,7 +797,7 @@ void View_KingKong(void){
 
 void View_DoubaoWelcome(void){
 		ST7789_DrawImage(10, 10, 160, 160, (uint16_t *)doubao);
-		ST7789_WriteString(0, 180, " !\"#$\%&\'\(\)\*+,-.", Han_Array, WHITE, BLACK);
+		ST7789_WriteString(0, 180, " !\"#$\%&\'\(\)", Han_Array32, WHITE, BLACK);
 //		ST7789_WriteString(170, 180, "", Han_Array, WHITE, BLACK);
 	}
 
