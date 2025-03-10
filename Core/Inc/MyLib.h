@@ -38,4 +38,15 @@ void handle_overflow(uint32_t *value, int32_t delta, uint32_t lower_limit, uint3
 int __io_putchar(int ch);
 
 
+//STM32CubeIDE
+#ifdef __GNUC__
+int __io_putchar(int ch);
+#endif
+
+
+//keil MDK
+#ifdef __CC_ARM
+int fputc(int ch, FILE *f);
+#endif
+
 #endif // MYLIB_H

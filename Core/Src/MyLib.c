@@ -28,8 +28,20 @@ void handle_overflow(uint32_t *value, int32_t delta, uint32_t lower_limit, uint3
 
 
 
+#ifdef __GNUC__
 int __io_putchar(int ch)
 {
-	HAL_UART_Transmit(&DEBUG_UART , (uint8_t *)&ch, 1, 0xFFFF);
+    HAL_UART_Transmit(&hlpuart1, (uint8_t*)&ch, 1, HAL_MAX_DELAY);
     return ch;
-};
+}
+#endif
+
+
+#ifdef __CC_ARM
+int fputc(int ch, FILE *f)
+{
+    /* 发送一个字节数据到串口 USARTx */
+    HAL_UART_Transmit(&hlpuart1, (uint8_t*)&ch, 1, HAL_MAX_DELAY);
+    return (ch);
+}
+#endif
