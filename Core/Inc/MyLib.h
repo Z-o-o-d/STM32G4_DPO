@@ -35,7 +35,6 @@
  */
 void handle_overflow(uint32_t *value, int32_t delta, uint32_t lower_limit, uint32_t upper_limit);
 
-int __io_putchar(int ch);
 
 
 //STM32CubeIDE
