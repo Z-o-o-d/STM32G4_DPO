@@ -2,13 +2,15 @@
 #define MYLIB_H
 
 
+
+#include "stm32g4xx_hal.h"
 #include "main.h"
 #include <stdint.h>
 #include "stdio.h"
 #include "string.h"
 #include "math.h"
 
-
+#define DEBUG_UART hlpuart1
 
 /**
  * @brief 通用越界处理函数，可对无符号 32 位整数进行越界检查与调整
@@ -32,5 +34,8 @@
  * 2. 由于函数直接修改指针所指向的变量，调用时需确保指针有效，避免空指针异常。
  */
 void handle_overflow(uint32_t *value, int32_t delta, uint32_t lower_limit, uint32_t upper_limit);
+
+int __io_putchar(int ch);
+
 
 #endif // MYLIB_H

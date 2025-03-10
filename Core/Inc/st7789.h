@@ -302,11 +302,7 @@ void ST7789_Test(void);
 
 /* Views */
 
-void View_KingKong(void);
 
-void View_DoubaoWelcome(void);
-
-void View_Sensor(void);
 
 
 #ifndef ST7789_ROTATION

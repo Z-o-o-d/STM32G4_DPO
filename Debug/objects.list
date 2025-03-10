@@ -1,5 +1,6 @@
 "./Core/Src/MyLib.o"
 "./Core/Src/TLC5952.o"
+"./Core/Src/Views.o"
 "./Core/Src/fonts.o"
 "./Core/Src/ft6336.o"
 "./Core/Src/main.o"

@@ -140,6 +140,14 @@ static void MX_HRTIM1_Init(void);
 
 
 
+//int __io_putchar(int ch)
+//{
+//	HAL_UART_Transmit(&hlpuart1 , (uint8_t *)&ch, 1, 0xFFFF);
+//    return ch;
+//};
+
+
+
 #define DPO_DEEP 1024
 #define DPO_DEEP_HALF DPO_DEEP/2
 

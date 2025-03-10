@@ -21,6 +21,3 @@
 ../Core/Src/st7789.c:625:6:ST7789_DrawFilledCircle	3
 ../Core/Src/st7789.c:665:6:ST7789_TearEffect	2
 ../Core/Src/st7789.c:678:6:ST7789_Test	1
-../Core/Src/st7789.c:791:6:View_KingKong	1
-../Core/Src/st7789.c:798:6:View_DoubaoWelcome	1
-../Core/Src/st7789.c:804:6:View_Sensor	1

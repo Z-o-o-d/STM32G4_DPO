@@ -1,5 +1,7 @@
 #include "mylib.h"
 
+extern UART_HandleTypeDef DEBUG_UART;
+
 
 void handle_overflow(uint32_t *value, int32_t delta, uint32_t lower_limit, uint32_t upper_limit) {
     if (delta >= 0) {
@@ -23,3 +25,11 @@ void handle_overflow(uint32_t *value, int32_t delta, uint32_t lower_limit, uint3
         }
     }
 }
+
+
+
+int __io_putchar(int ch)
+{
+	HAL_UART_Transmit(&DEBUG_UART , (uint8_t *)&ch, 1, 0xFFFF);
+    return ch;
+};

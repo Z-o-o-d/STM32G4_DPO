@@ -9,6 +9,9 @@
 //  @Contact : ${EMAIL}
 // -------------------------------
 
+#ifndef __FT6336_H
+#define __FT6336_H
+
 #include "main.h"
 #include "stm32g4xx_hal.h"
 
@@ -76,3 +79,5 @@ void FT6336_Init();
 void FT6336_GetTouchPoint(TouchPoints_HandleTypeDef *touchPoints);
 
 // void ReadTouchData();
+
+#endif

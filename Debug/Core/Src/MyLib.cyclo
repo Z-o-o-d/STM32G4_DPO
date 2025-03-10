@@ -1,1 +1,2 @@
-../Core/Src/MyLib.c:4:6:handle_overflow	4
+../Core/Src/MyLib.c:6:6:handle_overflow	4
+../Core/Src/MyLib.c:31:5:__io_putchar	1
