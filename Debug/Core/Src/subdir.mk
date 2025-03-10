@@ -5,6 +5,7 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../Core/Src/MyLib.c \
 ../Core/Src/TLC5952.c \
 ../Core/Src/fonts.c \
 ../Core/Src/ft6336.c \
@@ -18,6 +19,7 @@ C_SRCS += \
 ../Core/Src/ws2812.c 
 
 OBJS += \
+./Core/Src/MyLib.o \
 ./Core/Src/TLC5952.o \
 ./Core/Src/fonts.o \
 ./Core/Src/ft6336.o \
@@ -31,6 +33,7 @@ OBJS += \
 ./Core/Src/ws2812.o 
 
 C_DEPS += \
+./Core/Src/MyLib.d \
 ./Core/Src/TLC5952.d \
 ./Core/Src/fonts.d \
 ./Core/Src/ft6336.d \
@@ -51,7 +54,7 @@ Core/Src/%.o Core/Src/%.su Core/Src/%.cyclo: ../Core/Src/%.c Core/Src/subdir.mk
 clean: clean-Core-2f-Src
 
 clean-Core-2f-Src:
-	-$(RM) ./Core/Src/TLC5952.cyclo ./Core/Src/TLC5952.d ./Core/Src/TLC5952.o ./Core/Src/TLC5952.su ./Core/Src/fonts.cyclo ./Core/Src/fonts.d ./Core/Src/fonts.o ./Core/Src/fonts.su ./Core/Src/ft6336.cyclo ./Core/Src/ft6336.d ./Core/Src/ft6336.o ./Core/Src/ft6336.su ./Core/Src/main.cyclo ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/main.su ./Core/Src/st7789.cyclo ./Core/Src/st7789.d ./Core/Src/st7789.o ./Core/Src/st7789.su ./Core/Src/stm32g4xx_hal_msp.cyclo ./Core/Src/stm32g4xx_hal_msp.d ./Core/Src/stm32g4xx_hal_msp.o ./Core/Src/stm32g4xx_hal_msp.su ./Core/Src/stm32g4xx_it.cyclo ./Core/Src/stm32g4xx_it.d ./Core/Src/stm32g4xx_it.o ./Core/Src/stm32g4xx_it.su ./Core/Src/syscalls.cyclo ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/syscalls.su ./Core/Src/sysmem.cyclo ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/sysmem.su ./Core/Src/system_stm32g4xx.cyclo ./Core/Src/system_stm32g4xx.d ./Core/Src/system_stm32g4xx.o ./Core/Src/system_stm32g4xx.su ./Core/Src/ws2812.cyclo ./Core/Src/ws2812.d ./Core/Src/ws2812.o ./Core/Src/ws2812.su
+	-$(RM) ./Core/Src/MyLib.cyclo ./Core/Src/MyLib.d ./Core/Src/MyLib.o ./Core/Src/MyLib.su ./Core/Src/TLC5952.cyclo ./Core/Src/TLC5952.d ./Core/Src/TLC5952.o ./Core/Src/TLC5952.su ./Core/Src/fonts.cyclo ./Core/Src/fonts.d ./Core/Src/fonts.o ./Core/Src/fonts.su ./Core/Src/ft6336.cyclo ./Core/Src/ft6336.d ./Core/Src/ft6336.o ./Core/Src/ft6336.su ./Core/Src/main.cyclo ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/main.su ./Core/Src/st7789.cyclo ./Core/Src/st7789.d ./Core/Src/st7789.o ./Core/Src/st7789.su ./Core/Src/stm32g4xx_hal_msp.cyclo ./Core/Src/stm32g4xx_hal_msp.d ./Core/Src/stm32g4xx_hal_msp.o ./Core/Src/stm32g4xx_hal_msp.su ./Core/Src/stm32g4xx_it.cyclo ./Core/Src/stm32g4xx_it.d ./Core/Src/stm32g4xx_it.o ./Core/Src/stm32g4xx_it.su ./Core/Src/syscalls.cyclo ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/syscalls.su ./Core/Src/sysmem.cyclo ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/sysmem.su ./Core/Src/system_stm32g4xx.cyclo ./Core/Src/system_stm32g4xx.d ./Core/Src/system_stm32g4xx.o ./Core/Src/system_stm32g4xx.su ./Core/Src/ws2812.cyclo ./Core/Src/ws2812.d ./Core/Src/ws2812.o ./Core/Src/ws2812.su
 
 .PHONY: clean-Core-2f-Src
 

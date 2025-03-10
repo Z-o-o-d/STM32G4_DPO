@@ -24,10 +24,9 @@
 /* USER CODE BEGIN Includes */
 
 #include "usbd_cdc_if.h"
-#include "stdio.h"
-#include "string.h"
-#include "math.h"
 
+
+#include "MyLib.h"
 
 #include "ft6336.h"
 
@@ -170,10 +169,10 @@ uint32_t color = 0x000000;
 
 uint64_t DEBUG_COUNT = 0;
 
-uint16_t prev_cnt1 = 0;
-uint16_t prev_cnt3 = 0;
-uint16_t prev_cnt4 = 0;
-uint16_t prev_cnt20 = 0;
+uint16_t prev_cnt1 = 32767;
+uint16_t prev_cnt3 = 32767;
+uint16_t prev_cnt4 = 32767;
+uint16_t prev_cnt20 = 32767;
 
 Input_HandleTypeDef input={0};
 
@@ -231,6 +230,9 @@ __HAL_HRTIM_SETCOMPARE(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C , HRTIM_COMPAREUNIT_1,
 
 
 
+
+
+
 // 编码器处理函数
 void KEY_PROCESS(void) {
 
@@ -239,54 +241,26 @@ void KEY_PROCESS(void) {
 
 // 编码器处理函数
 void ENC_PROCESS(void) {
+	int32_t diff;
+	uint32_t current_cnt;
 
-	//处理会越界，不管了
-    // 读取 TIM1 的计数器值
-    uint32_t current_cnt1 = htim1.Instance->CNT;
-    int32_t diff1 = (int32_t)(current_cnt1 - prev_cnt1);
-    uint32_t abs_diff1 = abs(diff1);
-    if (diff1 > 0) {
-        WS2812_Brightness += abs_diff1;
-        htim8.Instance->CCR1+=abs_diff1;
+	current_cnt = htim4.Instance->CNT;
+	htim4.Instance->CNT=32767;
+	diff = (int32_t)(current_cnt - 32767);
 
-    } else if (diff1 < 0) {
-            WS2812_Brightness -= abs_diff1;
-            htim8.Instance->CCR1-=abs_diff1;
-    }
-    prev_cnt1 = current_cnt1;
+	current_cnt = htim3.Instance->CNT;
+	htim3.Instance->CNT=32767;
+	diff = (int32_t)(current_cnt - 32767);
 
-    // 读取 TIM3 的计数器值
-    uint32_t current_cnt3 = htim3.Instance->CNT;
-    int32_t diff3 = (int32_t)(current_cnt3 - prev_cnt3);
-    uint32_t abs_diff3 = abs(diff3);
-    if (diff3 > 0) {
-        // 可根据实际需求添加处理逻辑
-    } else if (diff3 < 0) {
-        // 可根据实际需求添加处理逻辑
-    }
-    prev_cnt3 = current_cnt3;
+	current_cnt = htim20.Instance->CNT;
+	htim20.Instance->CNT=32767;
+	diff = (int32_t)(32767 - current_cnt);
+	handle_overflow(&htim8.Instance->CCR1, diff, 4, 180);
 
-    // 读取 TIM4 的计数器值
-    uint32_t current_cnt4 = htim4.Instance->CNT;
-    int32_t diff4 = (int32_t)(current_cnt4 - prev_cnt4);
-    uint32_t abs_diff4 = abs(diff4);
-    if (diff4 > 0) {
-        // 可根据实际需求添加处理逻辑
-    } else if (diff4 < 0) {
-        // 可根据实际需求添加处理逻辑
-    }
-    prev_cnt4 = current_cnt4;
-
-    // 读取 TIM20 的计数器值
-    uint32_t current_cnt20 = htim20.Instance->CNT;
-    int32_t diff20 = (int32_t)(current_cnt20 - prev_cnt20);
-    uint32_t abs_diff20 = abs(diff20);
-    if (diff20 > 0) {
-        // 可根据实际需求添加处理逻辑
-    } else if (diff20 < 0) {
-        // 可根据实际需求添加处理逻辑
-    }
-    prev_cnt20 = current_cnt20;
+	current_cnt = htim1.Instance->CNT;
+	htim1.Instance->CNT=32767;
+	diff = (int32_t)(current_cnt - 32767);
+	handle_overflow(&WS2812_Brightness, diff, 0, 255);
 }
 
 
@@ -352,6 +326,12 @@ int main(void)
   MX_TIM6_Init();
   MX_HRTIM1_Init();
   /* USER CODE BEGIN 2 */
+
+
+  htim1.Instance->CNT=32767;
+  htim3.Instance->CNT=32767;
+  htim4.Instance->CNT=32767;
+  htim20.Instance->CNT=32767;
 
 
 //
@@ -422,9 +402,9 @@ int main(void)
 
     // 可以在这里处理 ADC 转换结果
     for (int i = 0; i < DPO_DEEP; i++) {
-//        sprintf(BUFFER_CDC,"ADC: %d\n", BUFFER_DPO_CH1[i]);
-//    	CDC_Transmit_FS(BUFFER_CDC, strlen(BUFFER_CDC));
-        printf("ADC: %d\n", BUFFER_DPO_CH1[i]);
+        sprintf(BUFFER_CDC,"ADC: %d\n", BUFFER_DPO_CH1[i]);
+    	CDC_Transmit_FS(BUFFER_CDC, strlen(BUFFER_CDC));
+//        printf("ADC: %d\n", BUFFER_DPO_CH1[i]);
 
     }
 
