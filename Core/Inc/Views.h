@@ -16,7 +16,7 @@ void View_Sensor(void);
 
 void View_Config(void);
 
-
+void View_DPO(void);
 
 
 

@@ -1,4 +1,4 @@
 ../Core/Src/Views.c:52:6:View_KingKong	24	static
 ../Core/Src/Views.c:59:6:View_DoubaoWelcome	24	static
-../Core/Src/Views.c:65:6:View_Sensor	40	static
-../Core/Src/Views.c:91:6:View_Config	24	static
+../Core/Src/Views.c:66:6:View_Sensor	32	static
+../Core/Src/Views.c:92:6:View_Config	24	static

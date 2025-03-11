@@ -1,2 +1,2 @@
 ../Core/Src/MyLib.c:6:6:handle_overflow	32	static
-../Core/Src/MyLib.c:31:5:__io_putchar	16	static
+../Core/Src/MyLib.c:32:5:__io_putchar	16	static

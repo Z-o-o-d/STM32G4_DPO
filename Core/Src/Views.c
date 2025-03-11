@@ -62,28 +62,29 @@ void View_DoubaoWelcome(void){
 //		ST7789_WriteString(170, 180, "", Han_Array, WHITE, BLACK);
 	}
 
-void View_Sensor(void){
-	sprintf(BUFFER_Display,"ENC1:%5d",htim4.Instance->CNT);
-	ST7789_WriteString(200, 10, BUFFER_Display, Font_11x18, WHITE, BLACK);
-	sprintf(BUFFER_Display,"ENC2:%5d",htim3.Instance->CNT);
-	ST7789_WriteString(200, 40, BUFFER_Display, Font_11x18, WHITE, BLACK);
-	sprintf(BUFFER_Display,"ENC3:%5d",htim20.Instance->CNT);
-	ST7789_WriteString(200, 70, BUFFER_Display, Font_11x18, WHITE, BLACK);
-	sprintf(BUFFER_Display,"ENC4:%5d",htim1.Instance->CNT);
-	ST7789_WriteString(200, 100, BUFFER_Display, Font_11x18, WHITE, BLACK);
 
-	sprintf(BUFFER_Display,"KEYs:%5d",BUFFER_SYS_ADC[0]);
-	ST7789_WriteString(200, 130, BUFFER_Display, Font_11x18, WHITE, BLACK);
+void View_Sensor(void){
+	sprintf(&BUFFER_Display,"ENC1:%5d",htim4.Instance->CNT);
+	ST7789_WriteString(200, 10, &BUFFER_Display, Font_11x18, WHITE, BLACK);
+	sprintf(&BUFFER_Display,"ENC2:%5d",htim3.Instance->CNT);
+	ST7789_WriteString(200, 40, &BUFFER_Display, Font_11x18, WHITE, BLACK);
+	sprintf(&BUFFER_Display,"ENC3:%5d",htim20.Instance->CNT);
+	ST7789_WriteString(200, 70, &BUFFER_Display, Font_11x18, WHITE, BLACK);
+	sprintf(&BUFFER_Display,"ENC4:%5d",htim1.Instance->CNT);
+	ST7789_WriteString(200, 100, &BUFFER_Display, Font_11x18, WHITE, BLACK);
+
+	sprintf(&BUFFER_Display,"KEYs:%5d",BUFFER_SYS_ADC[0]);
+	ST7789_WriteString(200, 130, &BUFFER_Display, Font_11x18, WHITE, BLACK);
 
 	float temperate=(((float)BUFFER_SYS_ADC[1]*(3.3/4096)-0.76)/0.0025 + 30); //转换为温度值;
-	sprintf(BUFFER_Display,"TEMP:%4.1f",temperate);
-	ST7789_WriteString(200, 160, BUFFER_Display, Font_11x18, WHITE, BLACK);
+	sprintf(&BUFFER_Display,"TEMP:%4.1f",temperate);
+	ST7789_WriteString(200, 160, &BUFFER_Display, Font_11x18, WHITE, BLACK);
 
-	sprintf(BUFFER_Display,"Vbat:%5d",BUFFER_SYS_ADC[2]);
-	ST7789_WriteString(200, 190, BUFFER_Display, Font_11x18, WHITE, BLACK);
+	sprintf(&BUFFER_Display,"Vbat:%5d",BUFFER_SYS_ADC[2]);
+	ST7789_WriteString(200, 190, &BUFFER_Display, Font_11x18, WHITE, BLACK);
 
-	sprintf(BUFFER_Display,"Vref:%5d",BUFFER_SYS_ADC[3]);
-	ST7789_WriteString(200, 220, BUFFER_Display, Font_11x18, WHITE, BLACK);
+	sprintf(&BUFFER_Display,"Vref:%5d",BUFFER_SYS_ADC[3]);
+	ST7789_WriteString(200, 220, &BUFFER_Display, Font_11x18, WHITE, BLACK);
 
 	}
 
@@ -91,7 +92,24 @@ void View_Sensor(void){
 void View_Config(void){
 
 	ST7789_Fill_Color(WHITE);
-	sprintf(BUFFER_Display,"ENC1:%5d",htim4.Instance->CNT);
+	sprintf(&BUFFER_Display,"ENC1:%5d",htim4.Instance->CNT);
 	ST7789_WriteString(10, 10, "CONFIG", Font_16x26, WHITE, BLACK);
+	sprintf(&BUFFER_Display,"ARGB:%5d",WS2812_Brightness);
+	ST7789_WriteString(10, 10, "CONFIG", Font_16x26, WHITE, BLACK);
+
+
+	}
+
+
+
+
+void View_DPO(void){
+
+	ST7789_Fill_Color(WHITE);
+	sprintf(&BUFFER_Display,"ENC1:%5d",htim4.Instance->CNT);
+	ST7789_WriteString(10, 10, "CONFIG", Font_16x26, WHITE, BLACK);
+	sprintf(&BUFFER_Display,"ARGB:%5d",WS2812_Brightness);
+	ST7789_WriteString(10, 40, BUFFER_Display, Font_11x18, WHITE, BLACK);
+
 
 	}
