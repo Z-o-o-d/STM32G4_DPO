@@ -12,6 +12,8 @@
 
 #define DEBUG_UART hlpuart1
 
+
+extern uint32_t DEBUG_TICK_COUNT;
 /**
  * @brief 通用越界处理函数，可对无符号 32 位整数进行越界检查与调整
  *

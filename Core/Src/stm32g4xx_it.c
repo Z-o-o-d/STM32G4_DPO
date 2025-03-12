@@ -251,6 +251,7 @@ void EXTI0_IRQHandler(void)
 void EXTI1_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI1_IRQn 0 */
+	CH_selected=0;
 
   /* USER CODE END EXTI1_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_1);
@@ -406,7 +407,7 @@ void EXTI9_5_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI9_5_IRQn 0 */
 	DEBUG_COUNT++;
-
+	CH_selected=1;
   /* USER CODE END EXTI9_5_IRQn 0 */
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_8);
   /* USER CODE BEGIN EXTI9_5_IRQn 1 */
@@ -421,8 +422,11 @@ void EXTI15_10_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI15_10_IRQn 0 */
 	  FT6336_GetTouchPoint(&TouchPoints);
+	  input.Touched=1;
+//	  ST7789_DrawPixel(TouchPoints.point1_x, TouchPoints.point1_y, 0xffffff);
+	  input.touch_x=TouchPoints.point1_x;
+	  input.touch_y=TouchPoints.point1_y;
 
-	  ST7789_DrawPixel(TouchPoints.point1_x, TouchPoints.point1_y, 0xffffff);
 
 
   /* USER CODE END EXTI15_10_IRQn 0 */
@@ -447,8 +451,14 @@ void ADC5_IRQHandler(void)
     	input.KEY_ENC1=1;
     } else if (value >= 2250 && value < 2750) {
     	input.KEY_ENC2=1;
+
+//    	CH_selected=1;
+
     } else if (value >= 2750 && value <= 3500) {
     	input.KEY_ENC3=1;
+
+//    	CH_selected=0;
+
     }
 
 

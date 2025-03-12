@@ -3,6 +3,7 @@
 
 #include "main.h"
 #include "st7789.h"
+#include "ws2812.h"
 
 /* Views */
 
@@ -11,8 +12,6 @@ void View_KingKong(void);
 void View_DoubaoWelcome(void);
 
 void View_Sensor(void);
-
-
 
 void View_Config(void);
 

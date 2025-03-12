@@ -1,4 +1,5 @@
-../Core/Src/Views.c:52:6:View_KingKong	1
-../Core/Src/Views.c:59:6:View_DoubaoWelcome	1
-../Core/Src/Views.c:66:6:View_Sensor	1
-../Core/Src/Views.c:92:6:View_Config	1
+../Core/Src/Views.c:54:6:View_KingKong	1
+../Core/Src/Views.c:61:6:View_DoubaoWelcome	1
+../Core/Src/Views.c:68:6:View_Sensor	1
+../Core/Src/Views.c:94:6:View_Config	1
+../Core/Src/Views.c:146:6:View_DPO	1

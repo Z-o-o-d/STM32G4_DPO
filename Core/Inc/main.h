@@ -31,7 +31,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "MyLib.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -99,32 +99,35 @@ void Error_Handler(void);
 #define LCD_BRIGHTNESS TIM8
 
 typedef struct {
-  // 使用位域来表示18个按键，每个按键占1位
-  unsigned int KEY0      : 1;
-  unsigned int KEY1      : 1;
-  unsigned int KEY2      : 1;
-  unsigned int KEY3      : 1;
-  unsigned int KEY4      : 1;
-  unsigned int KEY5      : 1;
-  unsigned int KEY_ENC0  : 1;
-  unsigned int KEY_ENC1  : 1;
-  unsigned int KEY_ENC2  : 1;
-  unsigned int KEY_ENC3  : 1;
-  // xy坐标，假设使用足够表示相应范围的整数类型
+  uint8_t KEY0      ;
+  uint8_t KEY1      ;
+  uint8_t KEY2      ;
+  uint8_t KEY3      ;
+  uint8_t KEY4      ;
+  uint8_t KEY5      ;
+  uint8_t KEY_ENC0  ;
+  uint8_t KEY_ENC1  ;
+  uint8_t KEY_ENC2  ;
+  uint8_t KEY_ENC3  ;
+
+  uint8_t Touched  ;
+
   uint16_t touch_x;
   uint16_t touch_y;
 } Input_HandleTypeDef;
 
 
 typedef struct {
-	GPIO_PinState AC_DC_CH1 : 1;
-	GPIO_PinState AC_DC_CH2 : 1;
-	GPIO_PinState CD_CH1 : 3;
-	GPIO_PinState CD_CH2 : 3;
-	uint16_t OFFSET1 :12;
-	uint16_t OFFSET2 :12;
+	uint8_t AC_DC_CH1 ;
+	uint8_t AC_DC_CH2 ;
+	uint32_t CD_CH1 ;
+	uint32_t CD_CH2 ;
+	uint32_t OFFSET1 ;
+	uint32_t OFFSET2 ;
 } FEAnalogStates;
 
+
+extern uint8_t CH_selected;
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

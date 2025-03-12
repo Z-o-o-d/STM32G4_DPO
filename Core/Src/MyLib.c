@@ -3,6 +3,8 @@
 extern UART_HandleTypeDef DEBUG_UART;
 
 
+uint32_t DEBUG_TICK_COUNT;
+
 void handle_overflow(uint32_t *value, int32_t delta, uint32_t lower_limit, uint32_t upper_limit) {
     if (delta >= 0) {
         // 当 delta 为正数，做加法操作，需要检查是否会超过上限

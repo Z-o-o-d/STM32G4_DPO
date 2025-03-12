@@ -68,6 +68,8 @@ DMA_HandleTypeDef hdma_adc5;
 COMP_HandleTypeDef hcomp2;
 COMP_HandleTypeDef hcomp5;
 
+CRC_HandleTypeDef hcrc;
+
 DAC_HandleTypeDef hdac1;
 DAC_HandleTypeDef hdac2;
 DAC_HandleTypeDef hdac4;
@@ -131,6 +133,7 @@ static void MX_ADC2_Init(void);
 static void MX_ADC3_Init(void);
 static void MX_TIM6_Init(void);
 static void MX_HRTIM1_Init(void);
+static void MX_CRC_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -140,7 +143,7 @@ static void MX_HRTIM1_Init(void);
 
 
 
-#define DPO_DEEP 1024
+#define DPO_DEEP 4096
 #define DPO_DEEP_HALF DPO_DEEP/2
 
 unsigned char BUFFER_CDC[500]={"abcd\r\n"};
@@ -171,7 +174,7 @@ uint16_t prev_cnt20 = 32767;
 Input_HandleTypeDef input={0};
 
 // 彩虹颜色配置
-RGBColor rainbow_colors[10] = {
+RGBColor rainbow_colors[WS2812_NUM] = {
     {255,   0,   0},
     {255, 115,   0},
     {255, 201,   0},
@@ -186,6 +189,23 @@ RGBColor rainbow_colors[10] = {
 
 
 
+// DMA发送配置
+RGBColor WS2812_colors[WS2812_NUM] = {
+    {255,   0,   0},
+    {255, 115,   0},
+    {255, 201,   0},
+    {229, 242,   0},
+    { 51, 153,   0},
+    {  0,  64, 127},
+    { 14,   0, 230},
+    { 67,   0, 142},
+    {172,  77, 194},
+    {243,  91, 166}
+};
+
+
+//memcpy(WS2812_colors, rainbow_colors, sizeof(rainbow_colors));
+
 
 FEAnalogStates FEAnalog = {
     .AC_DC_CH1 = GPIO_PIN_RESET,
@@ -199,15 +219,15 @@ FEAnalogStates FEAnalog = {
 void Analog_FE_Update(void) {
 	HAL_GPIO_WritePin(AC_DC_CH1_GPIO_Port, AC_DC_CH1_Pin, (GPIO_PinState)FEAnalog.AC_DC_CH1);
 
-	HAL_GPIO_WritePin(CD_CH1_A_GPIO_Port, CD_CH1_A_Pin, (GPIO_PinState)((FEAnalog.CD_CH1 >> 0) & 0x01));
-	HAL_GPIO_WritePin(CD_CH1_B_GPIO_Port, CD_CH1_B_Pin, (GPIO_PinState)((FEAnalog.CD_CH1 >> 1) & 0x01));
-	HAL_GPIO_WritePin(CD_CH1_C_GPIO_Port, CD_CH1_C_Pin, (GPIO_PinState)((FEAnalog.CD_CH1 >> 2) & 0x01));
+	HAL_GPIO_WritePin(CD_CH1_A_GPIO_Port, CD_CH1_A_Pin, (GPIO_PinState)((FEAnalog.CD_CH1 >> 1) & 0x01));
+	HAL_GPIO_WritePin(CD_CH1_B_GPIO_Port, CD_CH1_B_Pin, (GPIO_PinState)((FEAnalog.CD_CH1 >> 2) & 0x01));
+	HAL_GPIO_WritePin(CD_CH1_C_GPIO_Port, CD_CH1_C_Pin, (GPIO_PinState)((FEAnalog.CD_CH1 >> 3) & 0x01));
 
 	HAL_GPIO_WritePin(AC_DC_CH2_GPIO_Port, AC_DC_CH2_Pin, (GPIO_PinState)FEAnalog.AC_DC_CH2);
 
-	HAL_GPIO_WritePin(CD_CH2_A_GPIO_Port, CD_CH2_A_Pin, (GPIO_PinState)((FEAnalog.CD_CH2 >> 0) & 0x01));
-	HAL_GPIO_WritePin(CD_CH2_B_GPIO_Port, CD_CH2_B_Pin, (GPIO_PinState)((FEAnalog.CD_CH2 >> 1) & 0x01));
-	HAL_GPIO_WritePin(CD_CH2_C_GPIO_Port, CD_CH2_C_Pin, (GPIO_PinState)((FEAnalog.CD_CH2 >> 2) & 0x01));
+	HAL_GPIO_WritePin(CD_CH2_A_GPIO_Port, CD_CH2_A_Pin, (GPIO_PinState)((FEAnalog.CD_CH2 >> 1) & 0x01));
+	HAL_GPIO_WritePin(CD_CH2_B_GPIO_Port, CD_CH2_B_Pin, (GPIO_PinState)((FEAnalog.CD_CH2 >> 2) & 0x01));
+	HAL_GPIO_WritePin(CD_CH2_C_GPIO_Port, CD_CH2_C_Pin, (GPIO_PinState)((FEAnalog.CD_CH2 >> 3) & 0x01));
 
 	//SET OFFSET
 	HAL_DAC_SetValue(&hdac2, DAC_CHANNEL_1, DAC_ALIGN_12B_R, FEAnalog.OFFSET1);
@@ -229,22 +249,93 @@ __HAL_HRTIM_SETCOMPARE(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C , HRTIM_COMPAREUNIT_1,
 
 // 编码器处理函数
 void KEY_PROCESS(void) {
+	    // 处理按键
+	    if (input.KEY0) {
+	        printf("KEY0 is pressed.\n");
+	    }
+	    if (input.KEY1) {
+	        printf("KEY1 is pressed.\n");
+	    }
+	    if (input.KEY2) {
+	        printf("KEY2 is pressed.\n");
+	    }
+	    if (input.KEY3) {
+	        printf("KEY3 is pressed.\n");
+	    }
+	    if (input.KEY4) {
+	        printf("KEY4 is pressed.\n");
+	    }
+	    if (input.KEY5) {
+	        printf("KEY5 is pressed.\n");
+	    }
+	    if (input.KEY_ENC0) {
+	        printf("KEY_ENC0 is pressed.\n");
+	    }
+	    if (input.KEY_ENC1) {
+	        printf("KEY_ENC1 is pressed.\n");
+	    }
+	    if (input.KEY_ENC2) {
+	        printf("KEY_ENC2 is pressed.\n");
+	    }
+	    if (input.KEY_ENC3) {
+	        printf("KEY_ENC3 is pressed.\n");
+	    }
 
+	    // 处理触摸坐标
+	    if (input.Touched) {
+	        printf("Touch detected at coordinates (%u, %u).\n", input.touch_x, input.touch_y);
+	    }
+
+	    memset(&input, 0, sizeof(Input_HandleTypeDef));
 }
 
+
+// 用于累加差值的临时变量
+int32_t accumulated_diff1 = 0;
+int32_t accumulated_diff2 = 0;
+int32_t accumulated_diff3 = 0;
+int32_t accumulated_diff4 = 0;
+
+uint8_t CH_selected=0;
+uint8_t LOCK_CH1=0;
+uint8_t LOCK_CH2=0;
 
 // 编码器处理函数
 void ENC_PROCESS(void) {
 	int32_t diff;
 	uint32_t current_cnt;
 
+
+	if (CH_selected) {
 	current_cnt = htim4.Instance->CNT;
 	htim4.Instance->CNT=32767;
-	diff = (int32_t)(current_cnt - 32767);
+	diff = (int32_t)(current_cnt - 32767)*((FEAnalog.CD_CH2+1));
+	handle_overflow(&FEAnalog.OFFSET1, diff, 0, 4095);
+
 
 	current_cnt = htim3.Instance->CNT;
 	htim3.Instance->CNT=32767;
 	diff = (int32_t)(current_cnt - 32767);
+	handle_overflow(&FEAnalog.CD_CH1, -diff, 0, 14);
+	}
+	else
+	{
+	current_cnt = htim4.Instance->CNT;
+	htim4.Instance->CNT=32767;
+	diff = (int32_t)(current_cnt - 32767)*((FEAnalog.CD_CH2+1));
+	handle_overflow(&FEAnalog.OFFSET2, diff, 0, 4095);
+
+	current_cnt = htim3.Instance->CNT;
+	htim3.Instance->CNT=32767;
+	diff = (int32_t)(current_cnt - 32767);
+	handle_overflow(&FEAnalog.CD_CH2, -diff, 0, 14);
+	}
+
+
+
+
+
+
 
 	current_cnt = htim20.Instance->CNT;
 	htim20.Instance->CNT=32767;
@@ -255,6 +346,8 @@ void ENC_PROCESS(void) {
 	htim1.Instance->CNT=32767;
 	diff = (int32_t)(current_cnt - 32767);
 	handle_overflow(&WS2812_Brightness, diff, 0, 255);
+	WS2812_Write_Colors(rainbow_colors, 10);
+
 }
 
 
@@ -319,8 +412,8 @@ int main(void)
   MX_ADC3_Init();
   MX_TIM6_Init();
   MX_HRTIM1_Init();
+  MX_CRC_Init();
   /* USER CODE BEGIN 2 */
-
 
   htim1.Instance->CNT=32767;
   htim3.Instance->CNT=32767;
@@ -337,8 +430,8 @@ int main(void)
 //  HAL_OPAMP_Start(&hopamp5);
 //  HAL_OPAMP_Start(&hopamp6);
 
-	HAL_ADC_Start_DMA(&hadc2, BUFFER_DPO_CH1, DPO_DEEP);
-	HAL_ADC_Start_DMA(&hadc3, BUFFER_DPO_CH2, DPO_DEEP);
+	HAL_ADC_Start_DMA(&hadc2, BUFFER_DPO_CH2, DPO_DEEP);
+	HAL_ADC_Start_DMA(&hadc3, BUFFER_DPO_CH1, DPO_DEEP);
 
   HAL_ADC_Start_DMA(&hadc5, BUFFER_SYS_ADC, 5);
   HAL_TIM_Base_Start(&htim6);
@@ -378,9 +471,11 @@ int main(void)
   while (1)
   {
 	ENC_PROCESS();
+	KEY_PROCESS();
 //	  ST7789_Test();
 //	  ST7789_WriteString(10, 10, " !\"#\%\$", Han_Array, WHITE, BLACK);
 
+	WS2812_Write_Colors(WS2812_colors, 10);
 
 	Analog_FE_Update();
 
@@ -389,16 +484,18 @@ int main(void)
 
 
 
-    // 可以在这里处理 ADC 转换结果
-    for (int i = 0; i < DPO_DEEP; i++) {
+	while(LOCK_CH1){
+		for (int i = 0; i < DPO_DEEP; i++) {
+			sprintf(BUFFER_CDC,"ADC: %d,%d \r\n", BUFFER_DPO_CH1_PROC[i],BUFFER_DPO_CH2_PROC[i]);
 
-//        sprintf(BUFFER_CDC,"ADC: %d\n", BUFFER_DPO_CH1[i]);
-//    	CDC_Transmit_FS(BUFFER_CDC, strlen(BUFFER_CDC));
+	    	CDC_Transmit_FS(BUFFER_CDC, strlen(BUFFER_CDC));
 
-        printf("ADC: %d\n", BUFFER_DPO_CH1[i]);
+//			printf("ADC: %d,%d \r\n", BUFFER_DPO_CH1_PROC[i],BUFFER_DPO_CH2_PROC[i]);
 
-    }
 
+		}
+		LOCK_CH1=0;
+	}
 
 	TLC5952_WriteLED();
 	TLC5952_WriteControl();
@@ -406,7 +503,6 @@ int main(void)
 
 
 
-	WS2812_Write_Colors(rainbow_colors, 10);
 
 //	  HAL_ADC_Start(&hadc5);
 //	  result = HAL_ADC_GetValue(&hadc5);
@@ -770,6 +866,37 @@ static void MX_COMP5_Init(void)
   /* USER CODE BEGIN COMP5_Init 2 */
 
   /* USER CODE END COMP5_Init 2 */
+
+}
+
+/**
+  * @brief CRC Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_CRC_Init(void)
+{
+
+  /* USER CODE BEGIN CRC_Init 0 */
+
+  /* USER CODE END CRC_Init 0 */
+
+  /* USER CODE BEGIN CRC_Init 1 */
+
+  /* USER CODE END CRC_Init 1 */
+  hcrc.Instance = CRC;
+  hcrc.Init.DefaultPolynomialUse = DEFAULT_POLYNOMIAL_ENABLE;
+  hcrc.Init.DefaultInitValueUse = DEFAULT_INIT_VALUE_ENABLE;
+  hcrc.Init.InputDataInversionMode = CRC_INPUTDATA_INVERSION_NONE;
+  hcrc.Init.OutputDataInversionMode = CRC_OUTPUTDATA_INVERSION_DISABLE;
+  hcrc.InputDataFormat = CRC_INPUTDATA_FORMAT_BYTES;
+  if (HAL_CRC_Init(&hcrc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN CRC_Init 2 */
+
+  /* USER CODE END CRC_Init 2 */
 
 }
 
@@ -1494,7 +1621,7 @@ static void MX_TIM6_Init(void)
   htim6.Instance = TIM6;
   htim6.Init.Prescaler = 0;
   htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim6.Init.Period = 149;
+  htim6.Init.Period = 44;
   htim6.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
   {
@@ -1532,7 +1659,7 @@ static void MX_TIM7_Init(void)
   htim7.Instance = TIM7;
   htim7.Init.Prescaler = 180-1;
   htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim7.Init.Period = 999;
+  htim7.Init.Period = 1000-1;
   htim7.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim7) != HAL_OK)
   {
@@ -1912,35 +2039,21 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-//void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
-//{
-// /* Prevent unused argument(s) compilation warning */
-////	 ADC_VALUE = ADC_BUFFER[1];
-//
-//	for (size_t i = 0; i < DPO_DEEP_HALF; i++) {
-//		BUFFER_DPO_CH2[i] = BUFFER_DPO_CH1[i];
-//
-//	}
-//
-// /* NOTE : This function should not be modified. When the callback is needed,
-//           function HAL_ADC_ConvCpltCallback must be implemented in the user file.
-//  */
-//}
-//
-//
-// void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef *hadc)
-//{
-//  /* Prevent unused argument(s) compilation warning */
-//
-//		for (size_t i = DPO_DEEP_HALF; i < DPO_DEEP; i++) {
-//			BUFFER_DPO_CH2[i] = BUFFER_DPO_CH1[i];
-//
-//		}
-//
-//  /* NOTE : This function should not be modified. When the callback is needed,
-//            function HAL_ADC_ConvHalfCpltCallback must be implemented in the user file.
-//  */
-//}
+
+
+
+void HAL_ADC_ConvHalfCpltCallback	(ADC_HandleTypeDef *hadc)
+{
+    if (!LOCK_CH1 ) {
+        for (size_t i = 0; i < DPO_DEEP; i++) {
+            BUFFER_DPO_CH1_PROC[i] = BUFFER_DPO_CH1[i];
+
+            BUFFER_DPO_CH2_PROC[i] = BUFFER_DPO_CH2[i];
+        }
+        LOCK_CH1 =1;
+
+    }
+}
 
 /* USER CODE END 4 */
 
